@@ -34,6 +34,7 @@ import ViewerDashboard from "./pages/viewer/dashboard";
 import UserManagement from "./pages/admin/user-management";
 import ActivityLog from "./pages/admin/activity-log";
 import NotFound from "./pages/not-found";
+import "./App.css";
 
 function Router() {
   return (
