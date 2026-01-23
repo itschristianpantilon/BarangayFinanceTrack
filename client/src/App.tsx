@@ -43,39 +43,39 @@ function Router() {
       <Route path="/login" component={Login} />
       
       {/* Protected general routes */}
-      <Route path="/dashboard" component={() => <ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/revenues" component={() => <ProtectedRoute><Revenues /></ProtectedRoute>} />
-      <Route path="/expenses" component={() => <ProtectedRoute><Expenses /></ProtectedRoute>} />
-      <Route path="/receipts-expenditures" component={() => <ProtectedRoute><ReceiptsExpenditures /></ProtectedRoute>} />
-      <Route path="/fund-operations" component={() => <ProtectedRoute><FundOperations /></ProtectedRoute>} />
-      <Route path="/reports" component={() => <ProtectedRoute><Reports /></ProtectedRoute>} />
+      <Route path="/dashboard" component={() => <Dashboard />} />
+      <Route path="/revenues" component={() => <Revenues />} />
+      <Route path="/expenses" component={() => <Expenses />} />
+      <Route path="/receipts-expenditures" component={() => <ReceiptsExpenditures />} />
+      <Route path="/fund-operations" component={() => <FundOperations />} />
+      <Route path="/reports" component={() => <Reports />} />
       
       {/* Encoder routes */}
-      <Route path="/encoder/dashboard" component={() => <ProtectedRoute allowedRoles={["encoder"]}><EncoderDashboard /></ProtectedRoute>} />
-      <Route path="/encoder/abo" component={() => <ProtectedRoute allowedRoles={["encoder"]}><ABO /></ProtectedRoute>} />
-      <Route path="/encoder/sre" component={() => <ProtectedRoute allowedRoles={["encoder"]}><SRE /></ProtectedRoute>} />
-      <Route path="/encoder/dfur" component={() => <ProtectedRoute allowedRoles={["encoder"]}><DFUR /></ProtectedRoute>} />
+      <Route path="/encoder/dashboard" component={() => <EncoderDashboard />} />
+      <Route path="/encoder/abo" component={() => <ABO />} />
+      <Route path="/encoder/sre" component={() => <SRE />} />
+      <Route path="/encoder/dfur" component={() => <DFUR />} />
       
       {/* Checker routes */}
-      <Route path="/checker/dashboard" component={() => <ProtectedRoute allowedRoles={["checker"]}><CheckerDashboard /></ProtectedRoute>} />
-      <Route path="/checker/sre" component={() => <ProtectedRoute allowedRoles={["checker"]}><CheckerSRE /></ProtectedRoute>} />
-      <Route path="/checker/dfur" component={() => <ProtectedRoute allowedRoles={["checker"]}><CheckerDFUR /></ProtectedRoute>} />
+      <Route path="/checker/dashboard" component={() => <CheckerDashboard />} />
+      <Route path="/checker/sre" component={() => <CheckerSRE />} />
+      <Route path="/checker/dfur" component={() => <CheckerDFUR />} />
       
       {/* Approver routes */}
-      <Route path="/approver/dashboard" component={() => <ProtectedRoute allowedRoles={["approver"]}><ApproverDashboard /></ProtectedRoute>} />
-      <Route path="/approver/sre" component={() => <ProtectedRoute allowedRoles={["approver"]}><ApproverSRE /></ProtectedRoute>} />
-      <Route path="/approver/dfur" component={() => <ProtectedRoute allowedRoles={["approver"]}><ApproverDFUR /></ProtectedRoute>} />
+      <Route path="/approver/dashboard" component={() => <ApproverDashboard />} />
+      <Route path="/approver/sre" component={() => <ApproverSRE />} />
+      <Route path="/approver/dfur" component={() => <ApproverDFUR />} />
       
       {/* Reviewer routes */}
-      <Route path="/reviewer/dashboard" component={() => <ProtectedRoute allowedRoles={["reviewer"]}><ReviewerDashboard /></ProtectedRoute>} />
-      <Route path="/reviewer/dfur" component={() => <ProtectedRoute allowedRoles={["reviewer"]}><ReviewerDFUR /></ProtectedRoute>} />
+      <Route path="/reviewer/dashboard" component={() => <ReviewerDashboard />} />
+      <Route path="/reviewer/dfur" component={() => <ReviewerDFUR />} />
       
       {/* Viewer routes - Public Access (No login required) */}
       <Route path="/viewer/dashboard" component={ViewerDashboard} />
       
       {/* Admin routes */}
-      <Route path="/admin/users" component={() => <ProtectedRoute allowedRoles={["admin", "superadmin"]}><UserManagement /></ProtectedRoute>} />
-      <Route path="/admin/activity-log" component={() => <ProtectedRoute allowedRoles={["admin", "superadmin"]}><ActivityLog /></ProtectedRoute>} />
+      <Route path="/admin/users" component={() => <UserManagement />} />
+      <Route path="/admin/activity-log" component={() => <ActivityLog />} />
       
       <Route component={NotFound} />
     </Switch>
