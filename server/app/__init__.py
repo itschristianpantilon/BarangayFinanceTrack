@@ -17,7 +17,9 @@ def create_app():
     #TEST
     from app.routes.db_test_routes import db_test_bp
     from app.routes.tests_routes import test_bp
+    from app.routes.auth_routes import auth_bp
     app.register_blueprint(db_test_bp, url_prefix="/api")
     app.register_blueprint(test_bp, url_prefix="/api")
+    app.register_blueprint(auth_bp, url_prefix="/api")
 
     return app
