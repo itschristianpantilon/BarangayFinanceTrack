@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Plus, Edit } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -29,11 +28,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Textarea } from "../components/ui/textarea";
-import {
-  insertDisbursementSchema,
-  type InsertDisbursement,
-  type Disbursement,
-} from "../../../deleted/shared/schema";
+
 import { queryClient, apiRequest } from "../lib/queryClient";
 import { useToast } from "../hooks/use-toast";
 import {
@@ -42,6 +37,25 @@ import {
   DISBURSEMENT_CATEGORIES,
 } from "../lib/disbursementCategories";
 import { format } from "date-fns";
+
+type InsertDisbursement = {
+  transactionId: string;
+  transactionDate: string; // yyyy-MM-dd
+  natureOfDisbursement: string;
+  category: string;
+  subcategory: string;
+  programDescription?: string;
+  fundSource: string;
+  amount: string;
+  payee: string;
+  dvNumber: string;
+  remarks?: string;
+};
+
+type Disbursement = InsertDisbursement & {
+  id: number;
+};
+
 
 interface DisbursementFormProps {
   disbursement?: Disbursement;
@@ -60,36 +74,36 @@ export function DisbursementForm({
 
   const natureOptions = getAllDisbursementNatureOptions();
 
-  const form = useForm<InsertDisbursement>({
-    resolver: zodResolver(insertDisbursementSchema),
-    defaultValues: disbursement
-      ? {
-          transactionId: disbursement.transactionId,
-          transactionDate: disbursement.transactionDate,
-          natureOfDisbursement: disbursement.natureOfDisbursement,
-          category: disbursement.category,
-          subcategory: disbursement.subcategory,
-          programDescription: disbursement.programDescription || "",
-          fundSource: disbursement.fundSource,
-          amount: disbursement.amount,
-          payee: disbursement.payee,
-          dvNumber: disbursement.dvNumber,
-          remarks: disbursement.remarks || "",
-        }
-      : {
-          transactionId: "",
-          transactionDate: format(new Date(), "yyyy-MM-dd"),
-          natureOfDisbursement: "",
-          category: "",
-          subcategory: "",
-          programDescription: "",
-          fundSource: "General Fund",
-          amount: "0",
-          payee: "",
-          dvNumber: "",
-          remarks: "",
-        },
-  });
+const form = useForm<InsertDisbursement>({
+  defaultValues: disbursement
+    ? {
+        transactionId: disbursement.transactionId,
+        transactionDate: disbursement.transactionDate,
+        natureOfDisbursement: disbursement.natureOfDisbursement,
+        category: disbursement.category,
+        subcategory: disbursement.subcategory,
+        programDescription: disbursement.programDescription || "",
+        fundSource: disbursement.fundSource,
+        amount: disbursement.amount,
+        payee: disbursement.payee,
+        dvNumber: disbursement.dvNumber,
+        remarks: disbursement.remarks || "",
+      }
+    : {
+        transactionId: "",
+        transactionDate: format(new Date(), "yyyy-MM-dd"),
+        natureOfDisbursement: "",
+        category: "",
+        subcategory: "",
+        programDescription: "",
+        fundSource: "General Fund",
+        amount: "0",
+        payee: "",
+        dvNumber: "",
+        remarks: "",
+      },
+});
+
 
   // Reset form when dialog closes or disbursement prop changes
   useEffect(() => {

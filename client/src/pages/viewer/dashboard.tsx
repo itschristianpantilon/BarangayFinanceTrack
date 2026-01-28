@@ -20,9 +20,82 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { type Collection, type Disbursement, type DfurProject } from "@shared/schema";
-import { type CapitalOutlaySummary } from "@shared/abr";
+
 import { TrendingUp, TrendingDown } from "lucide-react";
+
+// Local types for static data
+
+export type DfurProject = {
+  id: string;
+  transactionId: string;
+  transactionDate: string;
+  natureOfCollection: string;
+  project: string;
+  location: string;
+  totalCostApproved: string;
+  totalCostIncurred: string;
+  dateStarted: string;
+  targetCompletionDate: string;
+  status: "Planned" | "In Progress" | "Completed" | "On Hold" | "Cancelled";
+  numberOfExtensions: number;
+  remarks?: string;
+  reviewStatus?: "pending" | "approved" | "flagged";
+  reviewedBy?: string;
+  reviewComment?: string;
+};
+
+export type InsertDfurProject = {
+  transactionId: string;
+  transactionDate: Date;
+  natureOfCollection: string;
+  project: string;
+  location: string;
+  totalCostApproved: string;
+  totalCostIncurred: string;
+  dateStarted: Date;
+  targetCompletionDate: Date;
+  status: "Planned" | "In Progress" | "Completed" | "On Hold" | "Cancelled";
+  numberOfExtensions: number;
+  remarks?: string;
+};
+
+export const dfurProjectsStatic: DfurProject[] = [
+  {
+    id: "1",
+    transactionId: "TXN-001",
+    transactionDate: "2026-01-15",
+    natureOfCollection: "Infrastructure",
+    project: "Road Repair - Zone 1",
+    location: "Zone 1",
+    totalCostApproved: "500000",
+    totalCostIncurred: "450000",
+    dateStarted: "2026-01-10",
+    targetCompletionDate: "2026-02-15",
+    status: "In Progress",
+    numberOfExtensions: 0,
+    reviewStatus: "approved",
+    reviewedBy: "Committee A",
+    reviewComment: "Work on schedule"
+  },
+  {
+    id: "2",
+    transactionId: "TXN-002",
+    transactionDate: "2026-01-12",
+    natureOfCollection: "Health",
+    project: "Clinic Renovation",
+    location: "Zone 2",
+    totalCostApproved: "300000",
+    totalCostIncurred: "300000",
+    dateStarted: "2026-01-05",
+    targetCompletionDate: "2026-01-25",
+    status: "Completed",
+    numberOfExtensions: 1,
+    reviewStatus: "flagged",
+    reviewedBy: "Committee B",
+    reviewComment: "Exceeded budget"
+  }
+];
+
 
 const COLORS = {
   primary: "#059669",
@@ -64,9 +137,8 @@ export default function ViewerDashboard() {
     },
   });
 
-  const { data: dfurProjects } = useQuery<DfurProject[]>({
-    queryKey: ["/api/dfur"],
-  });
+const dfurProjects = dfurProjectsStatic;
+
 
   const { data: capitalOutlaySummary } = useQuery<CapitalOutlaySummary>({
     queryKey: ["/api/abr/capital-outlay-summary", currentYear],

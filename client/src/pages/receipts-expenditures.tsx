@@ -19,7 +19,21 @@ import {
 } from "../components/ui/table";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import type { Revenue, Expense } from "../../../deleted/shared/schema";
+type Revenue = {
+  id: string;
+  date: string;
+  source: string;
+  category: string;
+  amount: string;
+};
+
+type Expense = {
+  id: string;
+  date: string;
+  category: string;
+  description: string;
+  amount: string;
+};
 import { format, startOfMonth, endOfMonth } from "date-fns";
 
 export default function ReceiptsExpenditures() {

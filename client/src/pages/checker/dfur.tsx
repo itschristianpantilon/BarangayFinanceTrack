@@ -31,10 +31,41 @@ import {
 } from "../../components/ui/dialog";
 import { Textarea } from "../../components/ui/textarea";
 import { Badge } from "../../components/ui/badge";
-import { type DfurProject } from "../../../../deleted/shared/schema";
+
 import { queryClient, apiRequest } from "../../lib/queryClient";
 import { useToast } from "../../hooks/use-toast";
 import { format } from "date-fns";
+
+type DfurProject = {
+  id: string;
+
+  transactionId: string;
+  transactionDate: string;
+
+  project: string;
+  natureOfCollection: string;
+  location: string;
+
+  totalCostApproved: number | string;
+  totalCostIncurred: number | string;
+
+  dateStarted: string;
+  targetCompletionDate: string;
+  numberOfExtensions: number;
+
+  status:
+    | "Planned"
+    | "In Progress"
+    | "Completed"
+    | "On Hold"
+    | "Cancelled";
+
+  reviewStatus: "pending" | "approved" | "flagged";
+  reviewComment?: string;
+
+  remarks?: string;
+};
+
 
 const getStatusColor = (status: string) => {
   switch (status) {

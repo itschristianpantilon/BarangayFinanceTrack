@@ -1,11 +1,9 @@
+import { z } from "zod";
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  insertBudgetEntrySchema,
-  type InsertBudgetEntry,
-  type BudgetEntry,
-} from "../../../deleted/shared/schema";
+
 import { useQuery } from "@tanstack/react-query";
 import {
   Form,
@@ -25,6 +23,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+
+export type BudgetEntry = {
+  id: string;
+  transactionId: string;
+  transactionDate: string;
+  expenditureProgram: string;
+  category: string;
+  subcategory: string;
+  programDescription?: string;
+  fundSource: string;
+  amount: string;
+  payee: string;
+  dvNumber: string;
+  remarks?: string;
+};
+
+export type InsertBudgetEntry = Omit<BudgetEntry, "id">;
+
 
 const EXPENDITURE_PROGRAMS = [
   {
@@ -130,6 +146,29 @@ const FUND_SOURCES = [
   "Trust Fund",
   "20% Development Fund",
 ];
+
+const insertBudgetEntrySchema = z.object({
+  transactionId: z.string().min(1, "Transaction ID is required"),
+  transactionDate: z.string().min(1, "Transaction date is required"),
+
+  expenditureProgram: z.string().min(1, "Expenditure program is required"),
+  category: z.string().min(1, "Category is required"),
+  subcategory: z.string().min(1, "Subcategory is required"),
+
+  programDescription: z.string().optional(),
+
+  fundSource: z.string().min(1, "Fund source is required"),
+
+  amount: z
+    .string()
+    .refine((val) => parseFloat(val) > 0, "Amount must be greater than 0"),
+
+  payee: z.string().min(1, "Payee is required"),
+  dvNumber: z.string().min(1, "DV number is required"),
+
+  remarks: z.string().optional(),
+});
+
 
 interface BudgetEntryFormProps {
   mode: "create" | "edit";

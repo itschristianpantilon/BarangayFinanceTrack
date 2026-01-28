@@ -1,5 +1,5 @@
 import { useState } from "react";
-//import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Search, TrendingUp } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -41,11 +41,30 @@ import {
 } from "../components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  insertRevenueSchema,
-  type Revenue,
-  type InsertRevenue,
-} from "../../../deleted/shared/schema";
+import { z } from "zod";
+
+type Revenue = {
+  id: number;
+  source: string;
+  category: string;
+  amount: string;
+  date: string | Date;
+  description?: string;
+  referenceNumber?: string;
+};
+
+// Define the schema for inserting a revenue record
+export const insertRevenueSchema = z.object({
+  source: z.string().min(1, "Source is required"),
+  category: z.string().min(1, "Category is required"),
+  amount: z.string().min(1, "Amount is required"),
+  date: z.union([z.string(), z.date()]),
+  description: z.string().optional(),
+  referenceNumber: z.string().optional(),
+});
+
+export type InsertRevenue = z.infer<typeof insertRevenueSchema>;
+
 import { queryClient, apiRequest } from "../lib/queryClient";
 import { useToast } from "../hooks/use-toast";
 import { format } from "date-fns";
@@ -63,9 +82,9 @@ export default function Revenues() {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
-  // const { data: revenues, isLoading } = useQuery<Revenue[]>({
-  //   queryKey: ["/api/revenues"],
-  // });
+  const { data: revenues, isLoading } = useQuery<Revenue[]>({
+    queryKey: ["/api/revenues"],
+  });
 
   const form = useForm<InsertRevenue>({
     resolver: zodResolver(insertRevenueSchema),
@@ -79,37 +98,37 @@ export default function Revenues() {
     },
   });
 
-  // const createRevenue = useMutation({
-  //   mutationFn: async (data: InsertRevenue) => {
-  //     return apiRequest("POST", "/api/revenues", data);
-  //   },
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ["/api/revenues"] });
-  //     queryClient.invalidateQueries({ queryKey: ["/api/financial-summary"] });
-  //     queryClient.invalidateQueries({ queryKey: ["/api/monthly-data"] });
-  //     queryClient.invalidateQueries({ queryKey: ["/api/revenue-by-category"] });
-  //     toast({
-  //       title: "Revenue Added",
-  //       description: "Revenue record has been successfully added.",
-  //     });
-  //     setOpen(false);
-  //     form.reset();
-  //   },
-  // });
+  const createRevenue = useMutation({
+    mutationFn: async (data: InsertRevenue) => {
+      return apiRequest("POST", "/api/revenues", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/revenues"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/financial-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/monthly-data"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/revenue-by-category"] });
+      toast({
+        title: "Revenue Added",
+        description: "Revenue record has been successfully added.",
+      });
+      setOpen(false);
+      form.reset();
+    },
+  });
 
-  // const filteredRevenues = revenues?.filter(
-  //   (revenue) =>
-  //     revenue.source.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //     revenue.category.toLowerCase().includes(searchQuery.toLowerCase()),
-  // );
+  const filteredRevenues = revenues?.filter(
+    (revenue) =>
+      revenue.source.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      revenue.category.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
-  // const totalRevenue =
-  //   revenues?.reduce((sum, r) => sum + parseFloat(r.amount), 0) || 0;
+  const totalRevenue =
+    revenues?.reduce((sum, r) => sum + parseFloat(r.amount), 0) || 0;
 
-  // const formatCurrency = (value: number | string) => {
-  //   const num = typeof value === "string" ? parseFloat(value) : value;
-  //   return `₱${num.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  // };
+  const formatCurrency = (value: number | string) => {
+    const num = typeof value === "string" ? parseFloat(value) : value;
+    return `₱${num.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
 
   return (
     <div className="p-8 space-y-6">

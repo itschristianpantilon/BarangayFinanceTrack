@@ -36,14 +36,33 @@ import {
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog";
 import { BudgetEntryForm } from "../../components/budget-entry-form";
-import {
-  type BudgetEntry,
-  type InsertBudgetEntry,
-} from "../../../../deleted/shared/schema";
+
 import { queryClient, apiRequest } from "../../lib/queryClient";
 import { useToast } from "../../hooks/use-toast";
 import { format } from "date-fns";
 import { EncoderLayout } from "../../components/encoder-layout";
+
+type BudgetEntry = {
+  id: string;
+  transactionId: string;
+  transactionDate: string;
+  category: string;
+  subcategory: string;
+  payee: string;
+  dvNumber: string;
+  amount: string;
+};
+
+type InsertBudgetEntry = {
+  transactionId: string;
+  transactionDate: string;
+  category: string;
+  subcategory: string;
+  payee: string;
+  dvNumber: string;
+  amount: string;
+};
+
 
 export default function ABO() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -346,7 +365,7 @@ export default function ABO() {
             </DialogHeader>
             <BudgetEntryForm
               mode={mode}
-              entry={selectedEntry}
+              //entry={selectedEntry}
               onSubmit={handleSubmit}
               isPending={createMutation.isPending || updateMutation.isPending}
               onCancel={() => setDialogOpen(false)}

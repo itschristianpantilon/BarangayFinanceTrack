@@ -22,11 +22,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type {
-  FinancialSummary,
-  MonthlyData,
-  CategoryData,
-} from "../../../deleted/shared/schema";
+
 
 const COLORS = [
   "hsl(var(--chart-1))",
@@ -36,34 +32,70 @@ const COLORS = [
   "hsl(var(--chart-5))",
 ];
 
+// Local types for static data
+export type FinancialSummary = {
+  totalRevenues: number;
+  totalExpenses: number;
+  netBalance: number;
+  currentMonthRevenues: number;
+  revenueGrowth: number; // percentage
+  expenseGrowth: number; // percentage
+};
+
+export type MonthlyData = {
+  month: string;
+  revenues: number;
+  expenses: number;
+};
+
+export type CategoryData = {
+  category: string;
+  amount: number;
+  percentage?: number;
+};
+
+// Financial summary
+const summaryStatic: FinancialSummary = {
+  totalRevenues: 5000000,
+  totalExpenses: 3200000,
+  netBalance: 1800000,
+  currentMonthRevenues: 420000,
+  revenueGrowth: 8,   // +8%
+  expenseGrowth: -5,  // -5%
+};
+
+// Monthly revenue & expenses
+const monthlyDataStatic: MonthlyData[] = [
+  { month: "Jan", revenues: 400000, expenses: 300000 },
+  { month: "Feb", revenues: 450000, expenses: 350000 },
+  { month: "Mar", revenues: 500000, expenses: 400000 },
+  { month: "Apr", revenues: 550000, expenses: 420000 },
+  { month: "May", revenues: 480000, expenses: 380000 },
+];
+
+// Revenue by category
+const revenueByCategoryStatic: CategoryData[] = [
+  { category: "Taxes", amount: 2000000, percentage: 40 },
+  { category: "Fees", amount: 1500000, percentage: 30 },
+  { category: "Grants", amount: 1000000, percentage: 20 },
+  { category: "Donations", amount: 500000, percentage: 10 },
+];
+
+// Expense by category
+const expenseByCategoryStatic: CategoryData[] = [
+  { category: "Salaries", amount: 1500000, percentage: 47 },
+  { category: "Infrastructure", amount: 1000000, percentage: 31 },
+  { category: "Operations", amount: 700000, percentage: 22 },
+];
+
+
 export default function Dashboard() {
-  const { data: summary, isLoading: summaryLoading } =
-    useQuery<FinancialSummary>({
-      queryKey: ["/api/financial-summary"],
-    });
+  const summary = summaryStatic;
+const monthlyData = monthlyDataStatic;
+const revenueByCategory = revenueByCategoryStatic;
+const expenseByCategory = expenseByCategoryStatic;
 
-  const { data: monthlyData, isLoading: monthlyLoading } = useQuery<
-    MonthlyData[]
-  >({
-    queryKey: ["/api/monthly-data"],
-  });
-
-  const { data: revenueByCategory, isLoading: revenueCategoryLoading } =
-    useQuery<CategoryData[]>({
-      queryKey: ["/api/revenue-by-category"],
-    });
-
-  const { data: expenseByCategory, isLoading: expenseCategoryLoading } =
-    useQuery<CategoryData[]>({
-      queryKey: ["/api/expense-by-category"],
-    });
-
-  if (
-    summaryLoading ||
-    monthlyLoading ||
-    revenueCategoryLoading ||
-    expenseCategoryLoading
-  ) {
+  if (!summary || !monthlyData || !revenueByCategory || !expenseByCategory) {
     return (
       <div className="p-8 space-y-8 animate-pulse">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

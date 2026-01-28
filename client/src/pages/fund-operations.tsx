@@ -41,11 +41,31 @@ import {
 } from "../components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  insertFundOperationSchema,
-  type FundOperation,
-  type InsertFundOperation,
-} from "../../../deleted/shared/schema";
+// Types and schema for FundOperation (static, local version)
+import { z } from "zod";
+
+export const insertFundOperationSchema = z.object({
+  fundType: z.string(),
+  period: z.string(),
+  date: z.date(),
+  openingBalance: z.string(),
+  receipts: z.string(),
+  disbursements: z.string(),
+  closingBalance: z.string(),
+});
+
+export type InsertFundOperation = z.infer<typeof insertFundOperationSchema>;
+
+export type FundOperation = {
+  id: number;
+  fundType: string;
+  period: string;
+  date: string | Date;
+  openingBalance: string;
+  receipts: string;
+  disbursements: string;
+  closingBalance: string;
+};
 import { queryClient, apiRequest } from "../lib/queryClient";
 import { useToast } from "../hooks/use-toast";
 import { format } from "date-fns";

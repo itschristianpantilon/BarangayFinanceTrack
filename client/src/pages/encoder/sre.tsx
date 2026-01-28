@@ -25,12 +25,49 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog";
-import type { Revenue, Expense, Collection, Disbursement } from "@shared/schema";
+
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { CollectionForm } from "../../components/collection-form";
 import { DisbursementForm } from "../../components/disbursement-form";
 import { queryClient, apiRequest } from "../../lib/queryClient";
 import { useToast } from "../../hooks/use-toast";
+
+export type Revenue = {
+  id: string;
+  date: string;
+  source: string;
+  category: string;
+  amount: string;
+};
+
+export type Expense = {
+  id: string;
+  date: string;
+  category: string;
+  description: string;
+  amount: string;
+};
+
+export type Collection = {
+  id: string;
+  transactionId: string;
+  transactionDate: string;
+  natureOfCollection: string;
+  payor: string;
+  orNumber: string;
+  amount: string;
+};
+
+export type Disbursement = {
+  id: string;
+  transactionId: string;
+  transactionDate: string;
+  natureOfDisbursement: string;
+  payee: string;
+  dvNumber: string;
+  amount: string;
+};
+
 
 type ViewType = 'collection' | 'disbursement';
 
@@ -304,7 +341,7 @@ export default function SRE() {
                       <TableCell className="text-center">
                         <div className="flex justify-center gap-2">
                           <CollectionForm
-                            collection={collection}
+                            //collection={collection}
                             trigger={
                               <Button 
                                 variant="ghost" 
@@ -459,7 +496,7 @@ export default function SRE() {
                       <TableCell className="text-center">
                         <div className="flex justify-center gap-2">
                           <DisbursementForm
-                            disbursement={disbursement}
+                            //disbursement={disbursement}
                             trigger={
                               <Button 
                                 variant="ghost" 

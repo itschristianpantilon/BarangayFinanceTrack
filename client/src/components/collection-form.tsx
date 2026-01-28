@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Plus, Edit } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -29,15 +28,32 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Textarea } from "../components/ui/textarea";
-import {
-  insertCollectionSchema,
-  type InsertCollection,
-  type Collection,
-} from "../../../deleted/shared/schema";
+
 import { queryClient, apiRequest } from "../lib/queryClient";
 import { useToast } from "../hooks/use-toast";
 import { getAllNatureOptions, FUND_SOURCES } from "../lib/collectionCategories";
+
+
 import { format } from "date-fns";
+
+type InsertCollection = {
+  transactionId: string;
+  transactionDate: Date | null;
+  natureOfCollection: string;
+  category: string;
+  subcategory: string;
+  purpose?: string;
+  fundSource: string;
+  amount: string;
+  payor: string;
+  orNumber: string;
+  remarks?: string;
+};
+
+type Collection = InsertCollection & {
+  id: number;
+};
+
 
 interface CollectionFormProps {
   collection?: Collection;
@@ -53,36 +69,36 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
 
   const natureOptions = getAllNatureOptions();
 
-  const form = useForm<InsertCollection>({
-    resolver: zodResolver(insertCollectionSchema),
-    defaultValues: collection
-      ? {
-          transactionId: collection.transactionId,
-          transactionDate: new Date(collection.transactionDate),
-          natureOfCollection: collection.natureOfCollection,
-          category: collection.category,
-          subcategory: collection.subcategory,
-          purpose: collection.purpose || "",
-          fundSource: collection.fundSource,
-          amount: collection.amount,
-          payor: collection.payor,
-          orNumber: collection.orNumber,
-          remarks: collection.remarks || "",
-        }
-      : {
-          transactionId: "",
-          transactionDate: new Date(),
-          natureOfCollection: "",
-          category: "",
-          subcategory: "",
-          purpose: "",
-          fundSource: "General Fund",
-          amount: "0",
-          payor: "",
-          orNumber: "",
-          remarks: "",
-        },
-  });
+const form = useForm<InsertCollection>({
+  defaultValues: collection
+    ? {
+        transactionId: collection.transactionId,
+        //transactionDate: new Date(collection.transactionDate),
+        natureOfCollection: collection.natureOfCollection,
+        category: collection.category,
+        subcategory: collection.subcategory,
+        purpose: collection.purpose || "",
+        fundSource: collection.fundSource,
+        amount: collection.amount,
+        payor: collection.payor,
+        orNumber: collection.orNumber,
+        remarks: collection.remarks || "",
+      }
+    : {
+        transactionId: "",
+        transactionDate: new Date(),
+        natureOfCollection: "",
+        category: "",
+        subcategory: "",
+        purpose: "",
+        fundSource: "General Fund",
+        amount: "0",
+        payor: "",
+        orNumber: "",
+        remarks: "",
+      },
+});
+
 
   // Reset form when dialog closes or collection prop changes
   useEffect(() => {
@@ -92,7 +108,7 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
       // Reset form with collection data when editing
       form.reset({
         transactionId: collection.transactionId,
-        transactionDate: new Date(collection.transactionDate),
+        //transactionDate: new Date(collection.transactionDate),
         natureOfCollection: collection.natureOfCollection,
         category: collection.category,
         subcategory: collection.subcategory,

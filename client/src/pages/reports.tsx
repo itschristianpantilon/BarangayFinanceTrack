@@ -21,12 +21,31 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
-import type {
-  Revenue,
-  Expense,
-  FundOperation,
-  BudgetAllocation,
-} from "../../../deleted/shared/schema";
+type Revenue = {
+  id: string;
+  amount: string;
+  [key: string]: any;
+};
+
+type Expense = {
+  id: string;
+  amount: string;
+  [key: string]: any;
+};
+
+type FundOperation = {
+  id: string;
+  closingBalance: string;
+  [key: string]: any;
+};
+
+type BudgetAllocation = {
+  id: string;
+  category: string;
+  allocatedAmount: string;
+  utilizedAmount: string;
+  [key: string]: any;
+};
 
 export default function Reports() {
   const { data: revenues } = useQuery<Revenue[]>({

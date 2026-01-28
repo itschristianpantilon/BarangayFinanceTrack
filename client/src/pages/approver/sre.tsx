@@ -37,12 +37,38 @@ import { Label } from "../../components/ui/label";
 import { useToast } from "../../hooks/use-toast";
 import { Flag, CheckCircle2 } from "lucide-react";
 import { apiRequest, queryClient } from "../../lib/queryClient";
-import type {
-  Collection,
-  Disbursement,
-} from "../../../../deleted/shared/schema";
+
 import { format } from "date-fns";
 import { ApproverLayout } from "../../components/approver-layout";
+
+type BaseTransaction = {
+  id: string;
+
+  transactionId: string;
+  transactionDate: string;
+
+  category: string;
+  subcategory: string;
+  fundSource: string;
+
+  amount: string;
+
+  reviewStatus: "pending" | "approved" | "flagged";
+  reviewComment?: string;
+};
+
+type Collection = BaseTransaction & {
+  natureOfCollection: string;
+  payor: string;
+  orNumber: string;
+};
+
+type Disbursement = BaseTransaction & {
+  natureOfDisbursement: string;
+  payee: string;
+  dvNumber: string;
+};
+
 
 export default function ApproverSRE() {
   const { toast } = useToast();

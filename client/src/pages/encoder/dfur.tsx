@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Edit, Trash2, FolderKanban } from "lucide-react";
@@ -54,14 +55,84 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  insertDfurProjectSchema,
-  type DfurProject,
-  type InsertDfurProject,
-} from "../../../../deleted/shared/schema";
+
 import { queryClient, apiRequest } from "../../lib/queryClient";
 import { useToast } from "../../hooks/use-toast";
 import { format } from "date-fns";
+
+export type DfurProject = {
+  id: string;
+  transactionId: string;
+  transactionDate: string;
+  natureOfCollection: string;
+  project: string;
+  location: string;
+  totalCostApproved: string;
+  dateStarted: string;
+  targetCompletionDate: string;
+  status:
+    | "Planned"
+    | "In Progress"
+    | "Completed"
+    | "On Hold"
+    | "Cancelled";
+  totalCostIncurred: string;
+  numberOfExtensions: number;
+  remarks?: string;
+};
+
+export type InsertDfurProject = {
+  transactionId: string;
+  transactionDate: Date;
+  natureOfCollection: string;
+  project: string;
+  location: string;
+  totalCostApproved: string;
+  dateStarted: Date;
+  targetCompletionDate: Date;
+  status:
+    | "Planned"
+    | "In Progress"
+    | "Completed"
+    | "On Hold"
+    | "Cancelled";
+  totalCostIncurred: string;
+  numberOfExtensions: number;
+  remarks?: string;
+};
+
+const insertDfurProjectSchema = z.object({
+  transactionId: z.string().min(1, "Transaction ID is required"),
+  transactionDate: z.date(),
+
+  natureOfCollection: z.string().min(1, "Nature of collection is required"),
+  project: z.string().min(1, "Project name is required"),
+  location: z.string().min(1, "Location is required"),
+
+  totalCostApproved: z
+    .string()
+    .refine((v) => parseFloat(v) >= 0, "Invalid amount"),
+
+  dateStarted: z.date(),
+  targetCompletionDate: z.date(),
+
+  status: z.enum([
+    "Planned",
+    "In Progress",
+    "Completed",
+    "On Hold",
+    "Cancelled",
+  ]),
+
+  totalCostIncurred: z
+    .string()
+    .refine((v) => parseFloat(v) >= 0, "Invalid amount"),
+
+  numberOfExtensions: z.number().min(0),
+
+  remarks: z.string().optional(),
+});
+
 
 const natureOfCollectionOptions = [
   "Infrastructure",

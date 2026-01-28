@@ -2,7 +2,16 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "../lib/queryClient";
-import type { UserWithoutPassword } from "@shared/schema";
+
+
+type UserWithoutPassword = {
+  id: number;
+  username: string;
+  role: string;
+  fullName?: string;
+  email?: string;
+};
+
 
 interface AuthContextType {
   user: UserWithoutPassword | null;

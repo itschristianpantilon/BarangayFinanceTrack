@@ -37,12 +37,44 @@ import { Label } from "../../components/ui/label";
 import { useToast } from "../../hooks/use-toast";
 import { Flag } from "lucide-react";
 import { apiRequest, queryClient } from "../../lib/queryClient";
-import type {
-  Collection,
-  Disbursement,
-} from "../../../../deleted/shared/schema";
+
 import { format } from "date-fns";
 import { CheckerLayout } from "../../components/checker-layout";
+
+type ReviewStatus = "pending" | "approved" | "flagged";
+
+type Collection = {
+  id: string;
+
+  transactionId: string;
+  transactionDate: string;
+
+  natureOfCollection: string;
+  payor: string;
+  orNumber: string;
+
+  amount: string;
+
+  reviewStatus: ReviewStatus;
+  reviewComment?: string;
+};
+
+type Disbursement = {
+  id: string;
+
+  transactionId: string;
+  transactionDate: string;
+
+  natureOfDisbursement: string;
+  payee: string;
+  dvNumber: string;
+
+  amount: string;
+
+  reviewStatus: ReviewStatus;
+  reviewComment?: string;
+};
+
 
 export default function CheckerSRE() {
   const { toast } = useToast();

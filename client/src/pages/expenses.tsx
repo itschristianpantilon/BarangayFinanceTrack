@@ -41,14 +41,70 @@ import {
 } from "../components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  insertExpenseSchema,
-  type Expense,
-  type InsertExpense,
-} from "../../../deleted/shared/schema";
+import { z } from "zod";
+
 import { queryClient, apiRequest } from "../lib/queryClient";
 import { useToast } from "../hooks/use-toast";
 import { format } from "date-fns";
+
+// Local types for Expenses
+export type Expense = {
+  id: string;
+  category: string;
+  subcategory: string;
+  amount: string;
+  date: Date;
+  description: string;
+  payee?: string;
+  referenceNumber?: string;
+};
+
+export type InsertExpense = Omit<Expense, "id">;
+
+const insertExpenseSchema = z.object({
+  category: z.string().min(1, "Category is required"),
+  subcategory: z.string().min(1, "Subcategory is required"),
+  amount: z.string().min(1, "Amount is required"),
+  date: z.date(),
+  description: z.string().min(1, "Description is required"),
+  payee: z.string().optional(),
+  referenceNumber: z.string().optional(),
+});
+
+// Sample expense data
+const expensesStatic: Expense[] = [
+  {
+    id: "1",
+    category: "Project Fund",
+    subcategory: "Infrastructure",
+    amount: "50000",
+    date: new Date("2026-01-05"),
+    description: "Repair barangay hall roof",
+    payee: "ABC Construction",
+    referenceNumber: "DV-001",
+  },
+  {
+    id: "2",
+    category: "Economic Services",
+    subcategory: "Agriculture",
+    amount: "25000",
+    date: new Date("2026-01-10"),
+    description: "Purchase seeds for farm program",
+    payee: "Green Farms",
+    referenceNumber: "DV-002",
+  },
+  {
+    id: "3",
+    category: "General Public Services",
+    subcategory: "Utilities",
+    amount: "10000",
+    date: new Date("2026-01-12"),
+    description: "Electricity bill payment",
+    payee: "MERALCO",
+    referenceNumber: "DV-003",
+  },
+];
+
 
 const expenseCategories = {
   "Project Fund": ["Infrastructure", "Equipment", "Programs"],
@@ -67,9 +123,9 @@ export default function Expenses() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const { toast } = useToast();
 
-  const { data: expenses, isLoading } = useQuery<Expense[]>({
-    queryKey: ["/api/expenses"],
-  });
+const expenses = expensesStatic;
+const isLoading = false;
+
 
   const form = useForm<InsertExpense>({
     resolver: zodResolver(insertExpenseSchema),

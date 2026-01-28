@@ -24,8 +24,28 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import { Badge } from "../../components/ui/badge";
-import { type DfurProject } from "../../../../deleted/shared/schema";
+
 import { format } from "date-fns";
+
+export type DfurProject = {
+  id: string;
+  transactionId: string;
+  transactionDate: string;        // ISO string
+  project: string;
+  natureOfCollection: string;
+  location: string;
+  totalCostApproved: string;      // string for API consistency
+  totalCostIncurred: string;      // string for API consistency
+  dateStarted: string;
+  targetCompletionDate: string;
+  status: "Planned" | "In Progress" | "Completed" | "On Hold" | "Cancelled";
+  reviewStatus: "pending" | "approved" | "flagged";
+  numberOfExtensions: number;
+  reviewedBy?: string;
+  remarks?: string;
+  reviewComment?: string;
+};
+
 
 const getStatusColor = (status: string) => {
   switch (status) {
