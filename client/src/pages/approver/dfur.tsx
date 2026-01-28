@@ -1,9 +1,20 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { CheckCircle2, AlertTriangle, FolderKanban, Eye, Flag } from "lucide-react";
+import {
+  CheckCircle2,
+  AlertTriangle,
+  FolderKanban,
+  Eye,
+  Flag,
+} from "lucide-react";
 import { ApproverLayout } from "../../components/approver-layout";
 import { Button } from "../../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 import {
   Table,
   TableBody,
@@ -20,7 +31,7 @@ import {
 } from "../../components/ui/dialog";
 import { Textarea } from "../../components/ui/textarea";
 import { Badge } from "../../components/ui/badge";
-import { type DfurProject } from "../../../../shared/schema";
+import { type DfurProject } from "../../../../deleted/shared/schema";
 import { queryClient, apiRequest } from "../../lib/queryClient";
 import { useToast } from "../../hooks/use-toast";
 import { format } from "date-fns";
@@ -54,9 +65,13 @@ const getReviewStatusColor = (status: string) => {
 };
 
 export default function ApproverDFUR() {
-  const [selectedProject, setSelectedProject] = useState<DfurProject | null>(null);
+  const [selectedProject, setSelectedProject] = useState<DfurProject | null>(
+    null,
+  );
   const [viewProject, setViewProject] = useState<DfurProject | null>(null);
-  const [reviewAction, setReviewAction] = useState<"approved" | "flagged" | null>(null);
+  const [reviewAction, setReviewAction] = useState<
+    "approved" | "flagged" | null
+  >(null);
   const [reviewComment, setReviewComment] = useState("");
   const { toast } = useToast();
 
@@ -65,7 +80,15 @@ export default function ApproverDFUR() {
   });
 
   const reviewProject = useMutation({
-    mutationFn: async ({ id, status, comment }: { id: string; status: "approved" | "flagged"; comment?: string }) => {
+    mutationFn: async ({
+      id,
+      status,
+      comment,
+    }: {
+      id: string;
+      status: "approved" | "flagged";
+      comment?: string;
+    }) => {
       return apiRequest("PATCH", `/api/dfur/${id}/review`, {
         status,
         comment: comment || null,
@@ -75,10 +98,14 @@ export default function ApproverDFUR() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/dfur"] });
       toast({
-        title: variables.status === "approved" ? "Project Approved" : "Project Flagged",
-        description: variables.status === "approved" 
-          ? "DFUR project has been approved."
-          : "DFUR project has been flagged for review.",
+        title:
+          variables.status === "approved"
+            ? "Project Approved"
+            : "Project Flagged",
+        description:
+          variables.status === "approved"
+            ? "DFUR project has been approved."
+            : "DFUR project has been flagged for review.",
       });
       setSelectedProject(null);
       setReviewAction(null);
@@ -88,7 +115,8 @@ export default function ApproverDFUR() {
       toast({
         variant: "destructive",
         title: "Error Reviewing Project",
-        description: error.message || "Failed to review project. Please try again.",
+        description:
+          error.message || "Failed to review project. Please try again.",
       });
     },
   });
@@ -103,21 +131,24 @@ export default function ApproverDFUR() {
       });
       return;
     }
-    reviewProject.mutate({ 
-      id: selectedProject.id, 
+    reviewProject.mutate({
+      id: selectedProject.id,
       status: reviewAction,
-      comment: reviewComment.trim() || undefined
+      comment: reviewComment.trim() || undefined,
     });
   };
 
   const formatCurrency = (value: number | string) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const num = typeof value === "string" ? parseFloat(value) : value;
+    return `₱${num.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const pendingProjects = projects?.filter(p => p.reviewStatus === "pending").length || 0;
-  const approvedProjects = projects?.filter(p => p.reviewStatus === "approved").length || 0;
-  const flaggedProjects = projects?.filter(p => p.reviewStatus === "flagged").length || 0;
+  const pendingProjects =
+    projects?.filter((p) => p.reviewStatus === "pending").length || 0;
+  const approvedProjects =
+    projects?.filter((p) => p.reviewStatus === "approved").length || 0;
+  const flaggedProjects =
+    projects?.filter((p) => p.reviewStatus === "flagged").length || 0;
 
   return (
     <ApproverLayout>
@@ -127,7 +158,9 @@ export default function ApproverDFUR() {
           <h1 className="text-3xl font-bold text-foreground font-poppins">
             Development Fund Utilization Report (DFUR)
           </h1>
-          <p className="text-muted-foreground mt-1">Review and approve DFUR projects</p>
+          <p className="text-muted-foreground mt-1">
+            Review and approve DFUR projects
+          </p>
         </div>
 
         {/* Summary Cards */}
@@ -140,7 +173,10 @@ export default function ApproverDFUR() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-foreground" data-testid="text-total-projects">
+              <p
+                className="text-4xl font-bold text-foreground"
+                data-testid="text-total-projects"
+              >
                 {projects?.length || 0}
               </p>
             </CardContent>
@@ -154,7 +190,10 @@ export default function ApproverDFUR() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-foreground" data-testid="text-pending-projects">
+              <p
+                className="text-4xl font-bold text-foreground"
+                data-testid="text-pending-projects"
+              >
                 {pendingProjects}
               </p>
             </CardContent>
@@ -168,7 +207,10 @@ export default function ApproverDFUR() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-foreground" data-testid="text-approved-projects">
+              <p
+                className="text-4xl font-bold text-foreground"
+                data-testid="text-approved-projects"
+              >
                 {approvedProjects}
               </p>
             </CardContent>
@@ -182,7 +224,10 @@ export default function ApproverDFUR() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-foreground" data-testid="text-flagged-projects">
+              <p
+                className="text-4xl font-bold text-foreground"
+                data-testid="text-flagged-projects"
+              >
                 {flaggedProjects}
               </p>
             </CardContent>
@@ -198,7 +243,10 @@ export default function ApproverDFUR() {
             {isLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-12 bg-muted rounded animate-pulse"
+                  />
                 ))}
               </div>
             ) : (
@@ -209,8 +257,12 @@ export default function ApproverDFUR() {
                       <TableHead>Transaction ID</TableHead>
                       <TableHead>Project</TableHead>
                       <TableHead>Nature</TableHead>
-                      <TableHead className="text-right">Approved Cost</TableHead>
-                      <TableHead className="text-right">Incurred Cost</TableHead>
+                      <TableHead className="text-right">
+                        Approved Cost
+                      </TableHead>
+                      <TableHead className="text-right">
+                        Incurred Cost
+                      </TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Review Status</TableHead>
                       <TableHead className="text-center">Actions</TableHead>
@@ -219,18 +271,28 @@ export default function ApproverDFUR() {
                   <TableBody>
                     {!projects || projects.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                        <TableCell
+                          colSpan={8}
+                          className="text-center py-8 text-muted-foreground"
+                        >
                           No DFUR projects found
                         </TableCell>
                       </TableRow>
                     ) : (
                       projects.map((project) => (
-                        <TableRow key={project.id} data-testid={`row-dfur-${project.id}`}>
-                          <TableCell className="font-mono text-sm">{project.transactionId}</TableCell>
+                        <TableRow
+                          key={project.id}
+                          data-testid={`row-dfur-${project.id}`}
+                        >
+                          <TableCell className="font-mono text-sm">
+                            {project.transactionId}
+                          </TableCell>
                           <TableCell className="font-medium max-w-[200px] truncate">
                             {project.project}
                           </TableCell>
-                          <TableCell className="text-sm">{project.natureOfCollection}</TableCell>
+                          <TableCell className="text-sm">
+                            {project.natureOfCollection}
+                          </TableCell>
                           <TableCell className="text-right font-semibold">
                             {formatCurrency(project.totalCostApproved)}
                           </TableCell>
@@ -238,14 +300,25 @@ export default function ApproverDFUR() {
                             {formatCurrency(project.totalCostIncurred)}
                           </TableCell>
                           <TableCell>
-                            <Badge className={getStatusColor(project.status)} variant="outline">
+                            <Badge
+                              className={getStatusColor(project.status)}
+                              variant="outline"
+                            >
                               {project.status}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className={getReviewStatusColor(project.reviewStatus)} variant="outline">
-                              {project.reviewStatus === "pending" ? "Pending" : 
-                               project.reviewStatus === "approved" ? "Approved" : "Flagged"}
+                            <Badge
+                              className={getReviewStatusColor(
+                                project.reviewStatus,
+                              )}
+                              variant="outline"
+                            >
+                              {project.reviewStatus === "pending"
+                                ? "Pending"
+                                : project.reviewStatus === "approved"
+                                  ? "Approved"
+                                  : "Flagged"}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -300,21 +373,37 @@ export default function ApproverDFUR() {
         </Card>
 
         {/* View Project Dialog */}
-        <Dialog open={!!viewProject} onOpenChange={(open) => !open && setViewProject(null)}>
+        <Dialog
+          open={!!viewProject}
+          onOpenChange={(open) => !open && setViewProject(null)}
+        >
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle className="font-poppins">Project Details</DialogTitle>
+              <DialogTitle className="font-poppins">
+                Project Details
+              </DialogTitle>
             </DialogHeader>
             {viewProject && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Transaction ID</p>
-                    <p className="font-mono font-medium">{viewProject.transactionId}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Transaction ID
+                    </p>
+                    <p className="font-mono font-medium">
+                      {viewProject.transactionId}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Transaction Date</p>
-                    <p className="font-medium">{format(new Date(viewProject.transactionDate), 'MMM dd, yyyy')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Transaction Date
+                    </p>
+                    <p className="font-medium">
+                      {format(
+                        new Date(viewProject.transactionDate),
+                        "MMM dd, yyyy",
+                      )}
+                    </p>
                   </div>
                 </div>
                 <div>
@@ -323,8 +412,12 @@ export default function ApproverDFUR() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Nature of Collection</p>
-                    <p className="font-medium">{viewProject.natureOfCollection}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Nature of Collection
+                    </p>
+                    <p className="font-medium">
+                      {viewProject.natureOfCollection}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Location</p>
@@ -333,34 +426,63 @@ export default function ApproverDFUR() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Cost Approved</p>
-                    <p className="font-semibold text-lg">{formatCurrency(viewProject.totalCostApproved)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Total Cost Approved
+                    </p>
+                    <p className="font-semibold text-lg">
+                      {formatCurrency(viewProject.totalCostApproved)}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Cost Incurred</p>
-                    <p className="font-semibold text-lg">{formatCurrency(viewProject.totalCostIncurred)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Total Cost Incurred
+                    </p>
+                    <p className="font-semibold text-lg">
+                      {formatCurrency(viewProject.totalCostIncurred)}
+                    </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Date Started</p>
-                    <p className="font-medium">{format(new Date(viewProject.dateStarted), 'MMM dd, yyyy')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Date Started
+                    </p>
+                    <p className="font-medium">
+                      {format(
+                        new Date(viewProject.dateStarted),
+                        "MMM dd, yyyy",
+                      )}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Target Completion</p>
-                    <p className="font-medium">{format(new Date(viewProject.targetCompletionDate), 'MMM dd, yyyy')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Target Completion
+                    </p>
+                    <p className="font-medium">
+                      {format(
+                        new Date(viewProject.targetCompletionDate),
+                        "MMM dd, yyyy",
+                      )}
+                    </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Status</p>
-                    <Badge className={getStatusColor(viewProject.status)} variant="outline">
+                    <Badge
+                      className={getStatusColor(viewProject.status)}
+                      variant="outline"
+                    >
                       {viewProject.status}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">No. of Extensions</p>
-                    <p className="font-medium">{viewProject.numberOfExtensions}</p>
+                    <p className="text-sm text-muted-foreground">
+                      No. of Extensions
+                    </p>
+                    <p className="font-medium">
+                      {viewProject.numberOfExtensions}
+                    </p>
                   </div>
                 </div>
                 {viewProject.remarks && (
@@ -371,7 +493,9 @@ export default function ApproverDFUR() {
                 )}
                 {viewProject.reviewComment && (
                   <div className="bg-muted p-4 rounded-md">
-                    <p className="text-sm text-muted-foreground">Review Comment</p>
+                    <p className="text-sm text-muted-foreground">
+                      Review Comment
+                    </p>
                     <p className="font-medium">{viewProject.reviewComment}</p>
                   </div>
                 )}
@@ -381,17 +505,22 @@ export default function ApproverDFUR() {
         </Dialog>
 
         {/* Review Project Dialog */}
-        <Dialog open={!!selectedProject && !!reviewAction} onOpenChange={(open) => {
-          if (!open) {
-            setSelectedProject(null);
-            setReviewAction(null);
-            setReviewComment("");
-          }
-        }}>
+        <Dialog
+          open={!!selectedProject && !!reviewAction}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedProject(null);
+              setReviewAction(null);
+              setReviewComment("");
+            }
+          }}
+        >
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle className="font-poppins">
-                {reviewAction === "approved" ? "Approve Project" : "Flag Project for Review"}
+                {reviewAction === "approved"
+                  ? "Approve Project"
+                  : "Flag Project for Review"}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
@@ -399,18 +528,27 @@ export default function ApproverDFUR() {
                 <div className="bg-muted p-4 rounded-md">
                   <p className="text-sm text-muted-foreground">Project</p>
                   <p className="font-medium">{selectedProject.project}</p>
-                  <p className="text-sm text-muted-foreground mt-2">Transaction ID</p>
-                  <p className="font-mono text-sm">{selectedProject.transactionId}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Transaction ID
+                  </p>
+                  <p className="font-mono text-sm">
+                    {selectedProject.transactionId}
+                  </p>
                 </div>
               )}
               <div>
                 <label className="text-sm font-medium">
-                  Comment {reviewAction === "flagged" && <span className="text-destructive">*</span>}
+                  Comment{" "}
+                  {reviewAction === "flagged" && (
+                    <span className="text-destructive">*</span>
+                  )}
                 </label>
                 <Textarea
-                  placeholder={reviewAction === "approved" 
-                    ? "Add an optional comment..." 
-                    : "Explain why this project is being flagged..."}
+                  placeholder={
+                    reviewAction === "approved"
+                      ? "Add an optional comment..."
+                      : "Explain why this project is being flagged..."
+                  }
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                   rows={4}
@@ -419,8 +557,8 @@ export default function ApproverDFUR() {
                 />
               </div>
               <div className="flex gap-2 justify-end">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setSelectedProject(null);
                     setReviewAction(null);
@@ -430,16 +568,23 @@ export default function ApproverDFUR() {
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleReview}
-                  disabled={reviewProject.isPending || (reviewAction === "flagged" && !reviewComment.trim())}
-                  variant={reviewAction === "approved" ? "default" : "destructive"}
+                  disabled={
+                    reviewProject.isPending ||
+                    (reviewAction === "flagged" && !reviewComment.trim())
+                  }
+                  variant={
+                    reviewAction === "approved" ? "default" : "destructive"
+                  }
                   data-testid="button-confirm-review"
                 >
                   {reviewAction === "approved" ? (
                     <>
                       <CheckCircle2 className="h-4 w-4 mr-2" />
-                      {reviewProject.isPending ? "Approving..." : "Approve Project"}
+                      {reviewProject.isPending
+                        ? "Approving..."
+                        : "Approve Project"}
                     </>
                   ) : (
                     <>

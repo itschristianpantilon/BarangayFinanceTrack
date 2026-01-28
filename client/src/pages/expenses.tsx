@@ -3,7 +3,12 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Search, TrendingDown } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import {
   Table,
   TableBody,
@@ -36,7 +41,11 @@ import {
 } from "../components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertExpenseSchema, type Expense, type InsertExpense } from "../../../shared/schema";
+import {
+  insertExpenseSchema,
+  type Expense,
+  type InsertExpense,
+} from "../../../deleted/shared/schema";
 import { queryClient, apiRequest } from "../lib/queryClient";
 import { useToast } from "../hooks/use-toast";
 import { format } from "date-fns";
@@ -44,7 +53,12 @@ import { format } from "date-fns";
 const expenseCategories = {
   "Project Fund": ["Infrastructure", "Equipment", "Programs"],
   "Economic Services": ["Agriculture", "Trade & Industry", "Tourism"],
-  "General Public Services": ["Personnel", "Utilities", "Supplies", "Maintenance"],
+  "General Public Services": [
+    "Personnel",
+    "Utilities",
+    "Supplies",
+    "Maintenance",
+  ],
 };
 
 export default function Expenses() {
@@ -93,14 +107,15 @@ export default function Expenses() {
     (expense) =>
       expense.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       expense.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      expense.payee?.toLowerCase().includes(searchQuery.toLowerCase())
+      expense.payee?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const totalExpenses = expenses?.reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0;
+  const totalExpenses =
+    expenses?.reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0;
 
   const formatCurrency = (value: number | string) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const num = typeof value === "string" ? parseFloat(value) : value;
+    return `₱${num.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (
@@ -108,8 +123,12 @@ export default function Expenses() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground font-poppins">Expense Tracking</h1>
-          <p className="text-muted-foreground mt-1">Monitor and manage barangay disbursements</p>
+          <h1 className="text-3xl font-bold text-foreground font-poppins">
+            Expense Tracking
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Monitor and manage barangay disbursements
+          </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -120,22 +139,29 @@ export default function Expenses() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle className="font-poppins">Add New Expense</DialogTitle>
+              <DialogTitle className="font-poppins">
+                Add New Expense
+              </DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit((data) => createExpense.mutate(data))} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit((data) =>
+                  createExpense.mutate(data),
+                )}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="category"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
-                      <Select 
+                      <Select
                         onValueChange={(value) => {
                           field.onChange(value);
                           setSelectedCategory(value);
                           form.setValue("subcategory", "");
-                        }} 
+                        }}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -161,18 +187,25 @@ export default function Expenses() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Subcategory</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!selectedCategory}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        disabled={!selectedCategory}
+                      >
                         <FormControl>
                           <SelectTrigger data-testid="select-subcategory">
                             <SelectValue placeholder="Select subcategory" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {selectedCategory && expenseCategories[selectedCategory as keyof typeof expenseCategories]?.map((sub) => (
-                            <SelectItem key={sub} value={sub}>
-                              {sub}
-                            </SelectItem>
-                          ))}
+                          {selectedCategory &&
+                            expenseCategories[
+                              selectedCategory as keyof typeof expenseCategories
+                            ]?.map((sub) => (
+                              <SelectItem key={sub} value={sub}>
+                                {sub}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -186,11 +219,11 @@ export default function Expenses() {
                     <FormItem>
                       <FormLabel>Amount (₱)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
+                        <Input
+                          type="number"
                           step="0.01"
-                          placeholder="0.00" 
-                          {...field} 
+                          placeholder="0.00"
+                          {...field}
                           data-testid="input-amount"
                         />
                       </FormControl>
@@ -205,10 +238,16 @@ export default function Expenses() {
                     <FormItem>
                       <FormLabel>Date</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="date" 
-                          value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                          onChange={(e) => field.onChange(new Date(e.target.value))}
+                        <Input
+                          type="date"
+                          value={
+                            field.value
+                              ? format(new Date(field.value), "yyyy-MM-dd")
+                              : ""
+                          }
+                          onChange={(e) =>
+                            field.onChange(new Date(e.target.value))
+                          }
                           data-testid="input-date"
                         />
                       </FormControl>
@@ -223,7 +262,12 @@ export default function Expenses() {
                     <FormItem>
                       <FormLabel>Payee</FormLabel>
                       <FormControl>
-                        <Input placeholder="Recipient name" {...field} value={field.value || ""} data-testid="input-payee" />
+                        <Input
+                          placeholder="Recipient name"
+                          {...field}
+                          value={field.value || ""}
+                          data-testid="input-payee"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -236,7 +280,12 @@ export default function Expenses() {
                     <FormItem>
                       <FormLabel>Reference Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="DV/Check Number" {...field} value={field.value || ""} data-testid="input-reference" />
+                        <Input
+                          placeholder="DV/Check Number"
+                          {...field}
+                          value={field.value || ""}
+                          data-testid="input-reference"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -249,17 +298,29 @@ export default function Expenses() {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Input placeholder="Purpose of expense" {...field} data-testid="input-description" />
+                        <Input
+                          placeholder="Purpose of expense"
+                          {...field}
+                          data-testid="input-description"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <div className="flex gap-2 justify-end pt-4">
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                  >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={createExpense.isPending} data-testid="button-submit">
+                  <Button
+                    type="submit"
+                    disabled={createExpense.isPending}
+                    data-testid="button-submit"
+                  >
                     {createExpense.isPending ? "Adding..." : "Add Expense"}
                   </Button>
                 </div>
@@ -278,7 +339,10 @@ export default function Expenses() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-foreground" data-testid="text-total-expenses-disbursed">
+          <p
+            className="text-4xl font-bold text-foreground"
+            data-testid="text-total-expenses-disbursed"
+          >
             {formatCurrency(totalExpenses)}
           </p>
         </CardContent>
@@ -323,23 +387,35 @@ export default function Expenses() {
               <TableBody>
                 {filteredExpenses?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-8 text-muted-foreground"
+                    >
                       No expense records found
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredExpenses?.map((expense) => (
-                    <TableRow key={expense.id} data-testid={`row-expense-${expense.id}`}>
-                      <TableCell>{format(new Date(expense.date), 'MMM dd, yyyy')}</TableCell>
+                    <TableRow
+                      key={expense.id}
+                      data-testid={`row-expense-${expense.id}`}
+                    >
+                      <TableCell>
+                        {format(new Date(expense.date), "MMM dd, yyyy")}
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium">{expense.category}</span>
-                          <span className="text-xs text-muted-foreground">{expense.subcategory}</span>
+                          <span className="font-medium">
+                            {expense.category}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {expense.subcategory}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>{expense.description}</TableCell>
-                      <TableCell>{expense.payee || '—'}</TableCell>
-                      <TableCell>{expense.referenceNumber || '—'}</TableCell>
+                      <TableCell>{expense.payee || "—"}</TableCell>
+                      <TableCell>{expense.referenceNumber || "—"}</TableCell>
                       <TableCell className="text-right font-semibold text-destructive">
                         {formatCurrency(expense.amount)}
                       </TableCell>

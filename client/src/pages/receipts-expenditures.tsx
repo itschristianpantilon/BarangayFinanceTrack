@@ -2,7 +2,12 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Download, Calendar } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,13 +19,17 @@ import {
 } from "../components/ui/table";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import type { Revenue, Expense } from "../../../shared/schema";
+import type { Revenue, Expense } from "../../../deleted/shared/schema";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 
 export default function ReceiptsExpenditures() {
   const currentDate = new Date();
-  const [startDate, setStartDate] = useState(format(startOfMonth(currentDate), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(endOfMonth(currentDate), 'yyyy-MM-dd'));
+  const [startDate, setStartDate] = useState(
+    format(startOfMonth(currentDate), "yyyy-MM-dd"),
+  );
+  const [endDate, setEndDate] = useState(
+    format(endOfMonth(currentDate), "yyyy-MM-dd"),
+  );
 
   const { data: revenues } = useQuery<Revenue[]>({
     queryKey: ["/api/revenues"],
@@ -30,22 +39,30 @@ export default function ReceiptsExpenditures() {
     queryKey: ["/api/expenses"],
   });
 
-  const filteredRevenues = revenues?.filter((r) => {
-    const date = new Date(r.date);
-    return date >= new Date(startDate) && date <= new Date(endDate);
-  }) || [];
+  const filteredRevenues =
+    revenues?.filter((r) => {
+      const date = new Date(r.date);
+      return date >= new Date(startDate) && date <= new Date(endDate);
+    }) || [];
 
-  const filteredExpenses = expenses?.filter((e) => {
-    const date = new Date(e.date);
-    return date >= new Date(startDate) && date <= new Date(endDate);
-  }) || [];
+  const filteredExpenses =
+    expenses?.filter((e) => {
+      const date = new Date(e.date);
+      return date >= new Date(startDate) && date <= new Date(endDate);
+    }) || [];
 
-  const totalReceipts = filteredRevenues.reduce((sum, r) => sum + parseFloat(r.amount), 0);
-  const totalExpenditures = filteredExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+  const totalReceipts = filteredRevenues.reduce(
+    (sum, r) => sum + parseFloat(r.amount),
+    0,
+  );
+  const totalExpenditures = filteredExpenses.reduce(
+    (sum, e) => sum + parseFloat(e.amount),
+    0,
+  );
   const netBalance = totalReceipts - totalExpenditures;
 
   const formatCurrency = (value: number) => {
-    return `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `₱${value.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const handleExport = () => {
@@ -58,10 +75,18 @@ export default function ReceiptsExpenditures() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground font-poppins">Statement of Receipts & Expenditures</h1>
-          <p className="text-muted-foreground mt-1">Comprehensive financial statement for the selected period</p>
+          <h1 className="text-3xl font-bold text-foreground font-poppins">
+            Statement of Receipts & Expenditures
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Comprehensive financial statement for the selected period
+          </p>
         </div>
-        <Button className="gap-2" onClick={handleExport} data-testid="button-export">
+        <Button
+          className="gap-2"
+          onClick={handleExport}
+          data-testid="button-export"
+        >
           <Download className="h-4 w-4" />
           Export Report
         </Button>
@@ -105,10 +130,15 @@ export default function ReceiptsExpenditures() {
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="bg-gradient-to-br from-chart-1/5 to-chart-1/10 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-base font-medium text-muted-foreground">Total Receipts</CardTitle>
+            <CardTitle className="text-base font-medium text-muted-foreground">
+              Total Receipts
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-chart-1" data-testid="text-total-receipts">
+            <p
+              className="text-3xl font-bold text-chart-1"
+              data-testid="text-total-receipts"
+            >
               {formatCurrency(totalReceipts)}
             </p>
           </CardContent>
@@ -116,10 +146,15 @@ export default function ReceiptsExpenditures() {
 
         <Card className="bg-gradient-to-br from-destructive/5 to-destructive/10 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-base font-medium text-muted-foreground">Total Expenditures</CardTitle>
+            <CardTitle className="text-base font-medium text-muted-foreground">
+              Total Expenditures
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-destructive" data-testid="text-total-expenditures">
+            <p
+              className="text-3xl font-bold text-destructive"
+              data-testid="text-total-expenditures"
+            >
               {formatCurrency(totalExpenditures)}
             </p>
           </CardContent>
@@ -127,10 +162,15 @@ export default function ReceiptsExpenditures() {
 
         <Card className="bg-gradient-to-br from-chart-3/5 to-chart-3/10 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-base font-medium text-muted-foreground">Net Balance</CardTitle>
+            <CardTitle className="text-base font-medium text-muted-foreground">
+              Net Balance
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className={`text-3xl font-bold ${netBalance >= 0 ? 'text-chart-1' : 'text-destructive'}`} data-testid="text-net-balance">
+            <p
+              className={`text-3xl font-bold ${netBalance >= 0 ? "text-chart-1" : "text-destructive"}`}
+              data-testid="text-net-balance"
+            >
               {formatCurrency(netBalance)}
             </p>
           </CardContent>
@@ -155,14 +195,19 @@ export default function ReceiptsExpenditures() {
             <TableBody>
               {filteredRevenues.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No receipts in selected period
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredRevenues.map((revenue) => (
                   <TableRow key={revenue.id}>
-                    <TableCell>{format(new Date(revenue.date), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell>
+                      {format(new Date(revenue.date), "MMM dd, yyyy")}
+                    </TableCell>
                     <TableCell>{revenue.source}</TableCell>
                     <TableCell>{revenue.category}</TableCell>
                     <TableCell className="text-right font-semibold text-chart-1">
@@ -174,7 +219,9 @@ export default function ReceiptsExpenditures() {
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={3} className="font-semibold">Total Receipts</TableCell>
+                <TableCell colSpan={3} className="font-semibold">
+                  Total Receipts
+                </TableCell>
                 <TableCell className="text-right font-bold text-chart-1">
                   {formatCurrency(totalReceipts)}
                 </TableCell>
@@ -202,14 +249,19 @@ export default function ReceiptsExpenditures() {
             <TableBody>
               {filteredExpenses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No expenditures in selected period
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredExpenses.map((expense) => (
                   <TableRow key={expense.id}>
-                    <TableCell>{format(new Date(expense.date), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell>
+                      {format(new Date(expense.date), "MMM dd, yyyy")}
+                    </TableCell>
                     <TableCell>{expense.category}</TableCell>
                     <TableCell>{expense.description}</TableCell>
                     <TableCell className="text-right font-semibold text-destructive">
@@ -221,7 +273,9 @@ export default function ReceiptsExpenditures() {
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={3} className="font-semibold">Total Expenditures</TableCell>
+                <TableCell colSpan={3} className="font-semibold">
+                  Total Expenditures
+                </TableCell>
                 <TableCell className="text-right font-bold text-destructive">
                   {formatCurrency(totalExpenditures)}
                 </TableCell>
@@ -240,11 +294,14 @@ export default function ReceiptsExpenditures() {
               <div>
                 <p className="text-sm text-muted-foreground">Net Balance</p>
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(startDate), 'MMM dd, yyyy')} - {format(new Date(endDate), 'MMM dd, yyyy')}
+                  {format(new Date(startDate), "MMM dd, yyyy")} -{" "}
+                  {format(new Date(endDate), "MMM dd, yyyy")}
                 </p>
               </div>
             </div>
-            <p className={`text-4xl font-bold ${netBalance >= 0 ? 'text-chart-1' : 'text-destructive'}`}>
+            <p
+              className={`text-4xl font-bold ${netBalance >= 0 ? "text-chart-1" : "text-destructive"}`}
+            >
               {formatCurrency(netBalance)}
             </p>
           </div>

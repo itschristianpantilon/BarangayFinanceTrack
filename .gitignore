@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+client/node_modules
 dist
 dist-ssr
 *.local
@@ -29,3 +30,4 @@ ENV/
 env/
 .env
 *.env
+server/venv/

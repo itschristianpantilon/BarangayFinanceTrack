@@ -1,7 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { FileText, TrendingUp, TrendingDown, DollarSign, Download } from "lucide-react";
+import {
+  FileText,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Download,
+} from "lucide-react";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import {
   Table,
   TableBody,
@@ -10,7 +21,12 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
-import type { Revenue, Expense, FundOperation, BudgetAllocation } from "../../../shared/schema";
+import type {
+  Revenue,
+  Expense,
+  FundOperation,
+  BudgetAllocation,
+} from "../../../deleted/shared/schema";
 
 export default function Reports() {
   const { data: revenues } = useQuery<Revenue[]>({
@@ -29,13 +45,17 @@ export default function Reports() {
     queryKey: ["/api/budget-allocations"],
   });
 
-  const totalRevenues = revenues?.reduce((sum, r) => sum + parseFloat(r.amount), 0) || 0;
-  const totalExpenses = expenses?.reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0;
-  const totalFundBalance = fundOperations?.reduce((sum, f) => sum + parseFloat(f.closingBalance), 0) || 0;
+  const totalRevenues =
+    revenues?.reduce((sum, r) => sum + parseFloat(r.amount), 0) || 0;
+  const totalExpenses =
+    expenses?.reduce((sum, e) => sum + parseFloat(e.amount), 0) || 0;
+  const totalFundBalance =
+    fundOperations?.reduce((sum, f) => sum + parseFloat(f.closingBalance), 0) ||
+    0;
 
   const formatCurrency = (value: number | string) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const num = typeof value === "string" ? parseFloat(value) : value;
+    return `₱${num.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const handleExport = (reportType: string) => {
@@ -46,8 +66,12 @@ export default function Reports() {
     <div className="p-8 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground font-poppins">Financial Reports</h1>
-        <p className="text-muted-foreground mt-1">Comprehensive financial reports and analytics</p>
+        <h1 className="text-3xl font-bold text-foreground font-poppins">
+          Financial Reports
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Comprehensive financial reports and analytics
+        </p>
       </div>
 
       {/* Quick Stats */}
@@ -56,8 +80,12 @@ export default function Reports() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Total Revenue</p>
-                <p className="text-2xl font-bold text-chart-1">{formatCurrency(totalRevenues)}</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Total Revenue
+                </p>
+                <p className="text-2xl font-bold text-chart-1">
+                  {formatCurrency(totalRevenues)}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-chart-1" />
             </div>
@@ -68,8 +96,12 @@ export default function Reports() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Total Expenses</p>
-                <p className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Total Expenses
+                </p>
+                <p className="text-2xl font-bold text-destructive">
+                  {formatCurrency(totalExpenses)}
+                </p>
               </div>
               <TrendingDown className="h-8 w-8 text-destructive" />
             </div>
@@ -80,8 +112,12 @@ export default function Reports() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Fund Balance</p>
-                <p className="text-2xl font-bold text-chart-3">{formatCurrency(totalFundBalance)}</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Fund Balance
+                </p>
+                <p className="text-2xl font-bold text-chart-3">
+                  {formatCurrency(totalFundBalance)}
+                </p>
               </div>
               <DollarSign className="h-8 w-8 text-chart-3" />
             </div>
@@ -100,13 +136,17 @@ export default function Reports() {
               <div className="flex items-center gap-3">
                 <FileText className="h-6 w-6 text-primary" />
                 <div>
-                  <h3 className="font-semibold">Statement of Receipts and Expenditures</h3>
-                  <p className="text-sm text-muted-foreground">Comprehensive income and expense report</p>
+                  <h3 className="font-semibold">
+                    Statement of Receipts and Expenditures
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Comprehensive income and expense report
+                  </p>
                 </div>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="gap-2"
                 onClick={() => handleExport("Receipts and Expenditures")}
                 data-testid="button-export-receipts-expenditures"
@@ -122,13 +162,17 @@ export default function Reports() {
               <div className="flex items-center gap-3">
                 <FileText className="h-6 w-6 text-primary" />
                 <div>
-                  <h3 className="font-semibold">Statement of Fund Operations</h3>
-                  <p className="text-sm text-muted-foreground">Fund balances and cash flow by fund type</p>
+                  <h3 className="font-semibold">
+                    Statement of Fund Operations
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Fund balances and cash flow by fund type
+                  </p>
                 </div>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="gap-2"
                 onClick={() => handleExport("Fund Operations")}
                 data-testid="button-export-fund-operations"
@@ -145,12 +189,14 @@ export default function Reports() {
                 <FileText className="h-6 w-6 text-primary" />
                 <div>
                   <h3 className="font-semibold">Fund Utilization Report</h3>
-                  <p className="text-sm text-muted-foreground">Detailed fund allocation and utilization</p>
+                  <p className="text-sm text-muted-foreground">
+                    Detailed fund allocation and utilization
+                  </p>
                 </div>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="gap-2"
                 onClick={() => handleExport("Fund Utilization")}
                 data-testid="button-export-fund-utilization"
@@ -167,12 +213,14 @@ export default function Reports() {
                 <FileText className="h-6 w-6 text-primary" />
                 <div>
                   <h3 className="font-semibold">Disbursement Records</h3>
-                  <p className="text-sm text-muted-foreground">Complete disbursement history and details</p>
+                  <p className="text-sm text-muted-foreground">
+                    Complete disbursement history and details
+                  </p>
                 </div>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="gap-2"
                 onClick={() => handleExport("Disbursement Records")}
                 data-testid="button-export-disbursements"
@@ -189,7 +237,9 @@ export default function Reports() {
       {budgetAllocations && budgetAllocations.length > 0 && (
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="font-poppins">Budget Allocation Summary</CardTitle>
+            <CardTitle className="font-poppins">
+              Budget Allocation Summary
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -204,16 +254,35 @@ export default function Reports() {
               </TableHeader>
               <TableBody>
                 {budgetAllocations.map((allocation) => {
-                  const balance = parseFloat(allocation.allocatedAmount) - parseFloat(allocation.utilizedAmount);
-                  const percentage = (parseFloat(allocation.utilizedAmount) / parseFloat(allocation.allocatedAmount)) * 100;
+                  const balance =
+                    parseFloat(allocation.allocatedAmount) -
+                    parseFloat(allocation.utilizedAmount);
+                  const percentage =
+                    (parseFloat(allocation.utilizedAmount) /
+                      parseFloat(allocation.allocatedAmount)) *
+                    100;
                   return (
                     <TableRow key={allocation.id}>
-                      <TableCell className="font-medium">{allocation.category}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(allocation.allocatedAmount)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(allocation.utilizedAmount)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(balance)}</TableCell>
+                      <TableCell className="font-medium">
+                        {allocation.category}
+                      </TableCell>
                       <TableCell className="text-right">
-                        <span className={percentage > 90 ? 'text-destructive' : 'text-chart-1'}>
+                        {formatCurrency(allocation.allocatedAmount)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(allocation.utilizedAmount)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(balance)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span
+                          className={
+                            percentage > 90
+                              ? "text-destructive"
+                              : "text-chart-1"
+                          }
+                        >
                           {percentage.toFixed(1)}%
                         </span>
                       </TableCell>

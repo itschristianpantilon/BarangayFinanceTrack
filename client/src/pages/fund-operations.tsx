@@ -3,7 +3,12 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Briefcase } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import {
   Table,
   TableBody,
@@ -36,7 +41,11 @@ import {
 } from "../components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertFundOperationSchema, type FundOperation, type InsertFundOperation } from "../../../shared/schema";
+import {
+  insertFundOperationSchema,
+  type FundOperation,
+  type InsertFundOperation,
+} from "../../../deleted/shared/schema";
 import { queryClient, apiRequest } from "../lib/queryClient";
 import { useToast } from "../hooks/use-toast";
 import { format } from "date-fns";
@@ -85,8 +94,8 @@ export default function FundOperations() {
   });
 
   const formatCurrency = (value: number | string) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const num = typeof value === "string" ? parseFloat(value) : value;
+    return `₱${num.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const handleAmountChange = () => {
@@ -102,8 +111,12 @@ export default function FundOperations() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground font-poppins">Statement of Fund Operations</h1>
-          <p className="text-muted-foreground mt-1">Track fund balances and cash flow by fund type</p>
+          <h1 className="text-3xl font-bold text-foreground font-poppins">
+            Statement of Fund Operations
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Track fund balances and cash flow by fund type
+          </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -114,17 +127,27 @@ export default function FundOperations() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle className="font-poppins">Add Fund Operation</DialogTitle>
+              <DialogTitle className="font-poppins">
+                Add Fund Operation
+              </DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit((data) => createFundOperation.mutate(data))} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit((data) =>
+                  createFundOperation.mutate(data),
+                )}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="fundType"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Fund Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger data-testid="select-fund-type">
                             <SelectValue placeholder="Select fund type" />
@@ -149,7 +172,11 @@ export default function FundOperations() {
                     <FormItem>
                       <FormLabel>Period</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Q1 2024, January 2024" {...field} data-testid="input-period" />
+                        <Input
+                          placeholder="e.g., Q1 2024, January 2024"
+                          {...field}
+                          data-testid="input-period"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -162,10 +189,16 @@ export default function FundOperations() {
                     <FormItem>
                       <FormLabel>Date</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="date" 
-                          value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                          onChange={(e) => field.onChange(new Date(e.target.value))}
+                        <Input
+                          type="date"
+                          value={
+                            field.value
+                              ? format(new Date(field.value), "yyyy-MM-dd")
+                              : ""
+                          }
+                          onChange={(e) =>
+                            field.onChange(new Date(e.target.value))
+                          }
                           data-testid="input-date"
                         />
                       </FormControl>
@@ -180,11 +213,11 @@ export default function FundOperations() {
                     <FormItem>
                       <FormLabel>Opening Balance (₱)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
+                        <Input
+                          type="number"
                           step="0.01"
-                          placeholder="0.00" 
-                          {...field} 
+                          placeholder="0.00"
+                          {...field}
                           onChange={(e) => {
                             field.onChange(e);
                             handleAmountChange();
@@ -203,11 +236,11 @@ export default function FundOperations() {
                     <FormItem>
                       <FormLabel>Receipts (₱)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
+                        <Input
+                          type="number"
                           step="0.01"
-                          placeholder="0.00" 
-                          {...field} 
+                          placeholder="0.00"
+                          {...field}
                           onChange={(e) => {
                             field.onChange(e);
                             handleAmountChange();
@@ -226,11 +259,11 @@ export default function FundOperations() {
                     <FormItem>
                       <FormLabel>Disbursements (₱)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
+                        <Input
+                          type="number"
                           step="0.01"
-                          placeholder="0.00" 
-                          {...field} 
+                          placeholder="0.00"
+                          {...field}
                           onChange={(e) => {
                             field.onChange(e);
                             handleAmountChange();
@@ -249,11 +282,11 @@ export default function FundOperations() {
                     <FormItem>
                       <FormLabel>Closing Balance (₱)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
+                        <Input
+                          type="number"
                           step="0.01"
-                          placeholder="0.00" 
-                          {...field} 
+                          placeholder="0.00"
+                          {...field}
                           readOnly
                           className="bg-muted"
                           data-testid="input-closing-balance"
@@ -264,11 +297,21 @@ export default function FundOperations() {
                   )}
                 />
                 <div className="flex gap-2 justify-end pt-4">
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                  >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={createFundOperation.isPending} data-testid="button-submit">
-                    {createFundOperation.isPending ? "Adding..." : "Add Operation"}
+                  <Button
+                    type="submit"
+                    disabled={createFundOperation.isPending}
+                    data-testid="button-submit"
+                  >
+                    {createFundOperation.isPending
+                      ? "Adding..."
+                      : "Add Operation"}
                   </Button>
                 </div>
               </form>
@@ -286,8 +329,16 @@ export default function FundOperations() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-foreground" data-testid="text-total-fund-balance">
-            {formatCurrency(operations?.reduce((sum, op) => sum + parseFloat(op.closingBalance), 0) || 0)}
+          <p
+            className="text-4xl font-bold text-foreground"
+            data-testid="text-total-fund-balance"
+          >
+            {formatCurrency(
+              operations?.reduce(
+                (sum, op) => sum + parseFloat(op.closingBalance),
+                0,
+              ) || 0,
+            )}
           </p>
         </CardContent>
       </Card>
@@ -295,7 +346,9 @@ export default function FundOperations() {
       {/* Fund Operations Table */}
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="font-poppins">Fund Operations Records</CardTitle>
+          <CardTitle className="font-poppins">
+            Fund Operations Records
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -320,20 +373,38 @@ export default function FundOperations() {
               <TableBody>
                 {operations?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-8 text-muted-foreground"
+                    >
                       No fund operation records found
                     </TableCell>
                   </TableRow>
                 ) : (
                   operations?.map((operation) => (
-                    <TableRow key={operation.id} data-testid={`row-fund-operation-${operation.id}`}>
-                      <TableCell>{format(new Date(operation.date), 'MMM dd, yyyy')}</TableCell>
-                      <TableCell className="font-medium">{operation.fundType}</TableCell>
+                    <TableRow
+                      key={operation.id}
+                      data-testid={`row-fund-operation-${operation.id}`}
+                    >
+                      <TableCell>
+                        {format(new Date(operation.date), "MMM dd, yyyy")}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {operation.fundType}
+                      </TableCell>
                       <TableCell>{operation.period}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(operation.openingBalance)}</TableCell>
-                      <TableCell className="text-right text-chart-1">{formatCurrency(operation.receipts)}</TableCell>
-                      <TableCell className="text-right text-destructive">{formatCurrency(operation.disbursements)}</TableCell>
-                      <TableCell className="text-right font-semibold">{formatCurrency(operation.closingBalance)}</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(operation.openingBalance)}
+                      </TableCell>
+                      <TableCell className="text-right text-chart-1">
+                        {formatCurrency(operation.receipts)}
+                      </TableCell>
+                      <TableCell className="text-right text-destructive">
+                        {formatCurrency(operation.disbursements)}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        {formatCurrency(operation.closingBalance)}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

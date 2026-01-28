@@ -5,7 +5,12 @@ import { EncoderLayout } from "../../components/encoder-layout";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 import {
   Table,
   TableBody,
@@ -49,7 +54,11 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertDfurProjectSchema, type DfurProject, type InsertDfurProject } from "../../../../shared/schema";
+import {
+  insertDfurProjectSchema,
+  type DfurProject,
+  type InsertDfurProject,
+} from "../../../../deleted/shared/schema";
 import { queryClient, apiRequest } from "../../lib/queryClient";
 import { useToast } from "../../hooks/use-toast";
 import { format } from "date-fns";
@@ -91,7 +100,9 @@ const getStatusColor = (status: string) => {
 
 export default function DFUR() {
   const [open, setOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<DfurProject | null>(null);
+  const [editingProject, setEditingProject] = useState<DfurProject | null>(
+    null,
+  );
   const [deleteProject, setDeleteProject] = useState<DfurProject | null>(null);
   const { toast } = useToast();
 
@@ -181,7 +192,8 @@ export default function DFUR() {
       toast({
         variant: "destructive",
         title: "Error Adding Project",
-        description: error.message || "Failed to add DFUR project. Please try again.",
+        description:
+          error.message || "Failed to add DFUR project. Please try again.",
       });
     },
   });
@@ -205,7 +217,8 @@ export default function DFUR() {
       toast({
         variant: "destructive",
         title: "Error Updating Project",
-        description: error.message || "Failed to update project. Please try again.",
+        description:
+          error.message || "Failed to update project. Please try again.",
       });
     },
   });
@@ -226,7 +239,8 @@ export default function DFUR() {
       toast({
         variant: "destructive",
         title: "Error Deleting Project",
-        description: error.message || "Failed to delete project. Please try again.",
+        description:
+          error.message || "Failed to delete project. Please try again.",
       });
     },
   });
@@ -257,13 +271,16 @@ export default function DFUR() {
   };
 
   const formatCurrency = (value: number | string) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const num = typeof value === "string" ? parseFloat(value) : value;
+    return `₱${num.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const totalApproved = projects?.reduce((sum, p) => sum + parseFloat(p.totalCostApproved), 0) || 0;
-  const totalIncurred = projects?.reduce((sum, p) => sum + parseFloat(p.totalCostIncurred), 0) || 0;
-  const activeProjects = projects?.filter(p => p.status === "In Progress").length || 0;
+  const totalApproved =
+    projects?.reduce((sum, p) => sum + parseFloat(p.totalCostApproved), 0) || 0;
+  const totalIncurred =
+    projects?.reduce((sum, p) => sum + parseFloat(p.totalCostIncurred), 0) || 0;
+  const activeProjects =
+    projects?.filter((p) => p.status === "In Progress").length || 0;
 
   return (
     <EncoderLayout>
@@ -274,7 +291,9 @@ export default function DFUR() {
             <h1 className="text-3xl font-bold text-foreground font-poppins">
               Development Fund Utilization Report (DFUR)
             </h1>
-            <p className="text-muted-foreground mt-1">Track and manage development fund projects</p>
+            <p className="text-muted-foreground mt-1">
+              Track and manage development fund projects
+            </p>
           </div>
           <Dialog open={open} onOpenChange={handleDialogClose}>
             <DialogTrigger asChild>
@@ -290,7 +309,10 @@ export default function DFUR() {
                 </DialogTitle>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-4"
+                >
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -299,11 +321,11 @@ export default function DFUR() {
                         <FormItem>
                           <FormLabel>Transaction ID</FormLabel>
                           <FormControl>
-                            <Input 
-                              {...field} 
-                              readOnly 
+                            <Input
+                              {...field}
+                              readOnly
                               className="bg-muted"
-                              data-testid="input-transaction-id" 
+                              data-testid="input-transaction-id"
                             />
                           </FormControl>
                           <FormMessage />
@@ -317,10 +339,16 @@ export default function DFUR() {
                         <FormItem>
                           <FormLabel>Transaction Date</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="date" 
-                              value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                              onChange={(e) => field.onChange(new Date(e.target.value))}
+                            <Input
+                              type="date"
+                              value={
+                                field.value
+                                  ? format(new Date(field.value), "yyyy-MM-dd")
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(new Date(e.target.value))
+                              }
                               data-testid="input-transaction-date"
                             />
                           </FormControl>
@@ -335,8 +363,13 @@ export default function DFUR() {
                     name="natureOfCollection"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nature of Collection - ECONOMIC SERVICES</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormLabel>
+                          Nature of Collection - ECONOMIC SERVICES
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger data-testid="select-nature-of-collection">
                               <SelectValue placeholder="Select category" />
@@ -362,7 +395,11 @@ export default function DFUR() {
                       <FormItem>
                         <FormLabel>Project</FormLabel>
                         <FormControl>
-                          <Input placeholder="Project name" {...field} data-testid="input-project" />
+                          <Input
+                            placeholder="Project name"
+                            {...field}
+                            data-testid="input-project"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -376,7 +413,11 @@ export default function DFUR() {
                       <FormItem>
                         <FormLabel>Location</FormLabel>
                         <FormControl>
-                          <Input placeholder="Project location" {...field} data-testid="input-location" />
+                          <Input
+                            placeholder="Project location"
+                            {...field}
+                            data-testid="input-location"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -391,10 +432,10 @@ export default function DFUR() {
                         <FormItem>
                           <FormLabel>Total Cost Approved (₱)</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
+                            <Input
+                              type="number"
                               step="0.01"
-                              placeholder="0.00" 
+                              placeholder="0.00"
                               {...field}
                               data-testid="input-total-cost-approved"
                             />
@@ -410,10 +451,10 @@ export default function DFUR() {
                         <FormItem>
                           <FormLabel>Total Cost Incurred (₱)</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
+                            <Input
+                              type="number"
                               step="0.01"
-                              placeholder="0.00" 
+                              placeholder="0.00"
                               {...field}
                               data-testid="input-total-cost-incurred"
                             />
@@ -432,10 +473,16 @@ export default function DFUR() {
                         <FormItem>
                           <FormLabel>Date Started</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="date" 
-                              value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                              onChange={(e) => field.onChange(new Date(e.target.value))}
+                            <Input
+                              type="date"
+                              value={
+                                field.value
+                                  ? format(new Date(field.value), "yyyy-MM-dd")
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(new Date(e.target.value))
+                              }
                               data-testid="input-date-started"
                             />
                           </FormControl>
@@ -450,10 +497,16 @@ export default function DFUR() {
                         <FormItem>
                           <FormLabel>Target Completion Date</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="date" 
-                              value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                              onChange={(e) => field.onChange(new Date(e.target.value))}
+                            <Input
+                              type="date"
+                              value={
+                                field.value
+                                  ? format(new Date(field.value), "yyyy-MM-dd")
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(new Date(e.target.value))
+                              }
                               data-testid="input-target-completion"
                             />
                           </FormControl>
@@ -470,7 +523,10 @@ export default function DFUR() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Status</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-status">
                                 <SelectValue placeholder="Select status" />
@@ -495,13 +551,15 @@ export default function DFUR() {
                         <FormItem>
                           <FormLabel>No. of Extensions</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
+                            <Input
+                              type="number"
                               min="0"
                               step="1"
-                              placeholder="0" 
+                              placeholder="0"
                               {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                field.onChange(parseInt(e.target.value) || 0)
+                              }
                               data-testid="input-extensions"
                             />
                           </FormControl>
@@ -518,7 +576,7 @@ export default function DFUR() {
                       <FormItem>
                         <FormLabel>Remarks</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Additional notes or remarks"
                             className="resize-none"
                             rows={3}
@@ -532,24 +590,26 @@ export default function DFUR() {
                   />
 
                   <div className="flex gap-2 justify-end pt-4">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      variant="outline"
                       onClick={() => handleDialogClose(false)}
                       data-testid="button-cancel"
                     >
                       Cancel
                     </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={createProject.isPending || updateProject.isPending}
+                    <Button
+                      type="submit"
+                      disabled={
+                        createProject.isPending || updateProject.isPending
+                      }
                       data-testid="button-submit"
                     >
                       {createProject.isPending || updateProject.isPending
-                        ? "Saving..." 
-                        : editingProject 
-                        ? "Update Project" 
-                        : "Add Project"}
+                        ? "Saving..."
+                        : editingProject
+                          ? "Update Project"
+                          : "Add Project"}
                     </Button>
                   </div>
                 </form>
@@ -568,7 +628,10 @@ export default function DFUR() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-foreground" data-testid="text-total-projects">
+              <p
+                className="text-4xl font-bold text-foreground"
+                data-testid="text-total-projects"
+              >
                 {projects?.length || 0}
               </p>
             </CardContent>
@@ -581,7 +644,10 @@ export default function DFUR() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-foreground" data-testid="text-total-approved">
+              <p
+                className="text-3xl font-bold text-foreground"
+                data-testid="text-total-approved"
+              >
                 {formatCurrency(totalApproved)}
               </p>
             </CardContent>
@@ -594,7 +660,10 @@ export default function DFUR() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-foreground" data-testid="text-active-projects">
+              <p
+                className="text-4xl font-bold text-foreground"
+                data-testid="text-active-projects"
+              >
                 {activeProjects}
               </p>
             </CardContent>
@@ -610,7 +679,10 @@ export default function DFUR() {
             {isLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-12 bg-muted rounded animate-pulse"
+                  />
                 ))}
               </div>
             ) : (
@@ -622,8 +694,12 @@ export default function DFUR() {
                       <TableHead>Project</TableHead>
                       <TableHead>Nature</TableHead>
                       <TableHead>Location</TableHead>
-                      <TableHead className="text-right">Approved Cost</TableHead>
-                      <TableHead className="text-right">Incurred Cost</TableHead>
+                      <TableHead className="text-right">
+                        Approved Cost
+                      </TableHead>
+                      <TableHead className="text-right">
+                        Incurred Cost
+                      </TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-center">Extensions</TableHead>
                       <TableHead className="text-center">Actions</TableHead>
@@ -632,19 +708,31 @@ export default function DFUR() {
                   <TableBody>
                     {!projects || projects.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                        <TableCell
+                          colSpan={9}
+                          className="text-center py-8 text-muted-foreground"
+                        >
                           No DFUR projects found
                         </TableCell>
                       </TableRow>
                     ) : (
                       projects.map((project) => (
-                        <TableRow key={project.id} data-testid={`row-dfur-${project.id}`}>
-                          <TableCell className="font-mono text-sm">{project.transactionId}</TableCell>
+                        <TableRow
+                          key={project.id}
+                          data-testid={`row-dfur-${project.id}`}
+                        >
+                          <TableCell className="font-mono text-sm">
+                            {project.transactionId}
+                          </TableCell>
                           <TableCell className="font-medium max-w-[200px] truncate">
                             {project.project}
                           </TableCell>
-                          <TableCell className="text-sm">{project.natureOfCollection}</TableCell>
-                          <TableCell className="text-sm">{project.location}</TableCell>
+                          <TableCell className="text-sm">
+                            {project.natureOfCollection}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {project.location}
+                          </TableCell>
                           <TableCell className="text-right font-semibold">
                             {formatCurrency(project.totalCostApproved)}
                           </TableCell>
@@ -652,7 +740,10 @@ export default function DFUR() {
                             {formatCurrency(project.totalCostIncurred)}
                           </TableCell>
                           <TableCell>
-                            <Badge className={getStatusColor(project.status)} variant="outline">
+                            <Badge
+                              className={getStatusColor(project.status)}
+                              variant="outline"
+                            >
                               {project.status}
                             </Badge>
                           </TableCell>
@@ -690,18 +781,27 @@ export default function DFUR() {
         </Card>
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!deleteProject} onOpenChange={(open) => !open && setDeleteProject(null)}>
+        <AlertDialog
+          open={!!deleteProject}
+          onOpenChange={(open) => !open && setDeleteProject(null)}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete DFUR Project?</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete project "{deleteProject?.project}"? This action cannot be undone.
+                Are you sure you want to delete project "
+                {deleteProject?.project}"? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+              <AlertDialogCancel data-testid="button-cancel-delete">
+                Cancel
+              </AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => deleteProject && deleteProjectMutation.mutate(deleteProject.id)}
+                onClick={() =>
+                  deleteProject &&
+                  deleteProjectMutation.mutate(deleteProject.id)
+                }
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 data-testid="button-confirm-delete"
               >

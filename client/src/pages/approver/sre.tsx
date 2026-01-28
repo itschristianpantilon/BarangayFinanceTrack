@@ -1,51 +1,116 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "../../components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../../components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableFooter,
+} from "../../components/ui/table";
 import { Button } from "../../components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
 import { Badge } from "../../components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
 import { Textarea } from "../../components/ui/textarea";
 import { Label } from "../../components/ui/label";
 import { useToast } from "../../hooks/use-toast";
 import { Flag, CheckCircle2 } from "lucide-react";
 import { apiRequest, queryClient } from "../../lib/queryClient";
-import type { Collection, Disbursement } from "../../../../shared/schema";
+import type {
+  Collection,
+  Disbursement,
+} from "../../../../deleted/shared/schema";
 import { format } from "date-fns";
 import { ApproverLayout } from "../../components/approver-layout";
 
 export default function ApproverSRE() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"collections" | "disbursements">("collections");
+  const [activeTab, setActiveTab] = useState<"collections" | "disbursements">(
+    "collections",
+  );
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<(Collection | Disbursement) & { type: "collection" | "disbursement" } | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<
+    | ((Collection | Disbursement) & { type: "collection" | "disbursement" })
+    | null
+  >(null);
   const [reviewComment, setReviewComment] = useState("");
-  const [reviewAction, setReviewAction] = useState<"approved" | "flagged">("approved");
+  const [reviewAction, setReviewAction] = useState<"approved" | "flagged">(
+    "approved",
+  );
 
   // Fetch collections
-  const { data: collections = [], isLoading: collectionsLoading } = useQuery<Collection[]>({
+  const { data: collections = [], isLoading: collectionsLoading } = useQuery<
+    Collection[]
+  >({
     queryKey: ["/api/collections"],
   });
 
   // Fetch disbursements
-  const { data: disbursements = [], isLoading: disbursementsLoading } = useQuery<Disbursement[]>({
-    queryKey: ["/api/disbursements"],
-  });
+  const { data: disbursements = [], isLoading: disbursementsLoading } =
+    useQuery<Disbursement[]>({
+      queryKey: ["/api/disbursements"],
+    });
 
   // Review mutation
   const reviewMutation = useMutation({
-    mutationFn: async ({ id, type, status, comment }: { id: string; type: "collection" | "disbursement"; status: "approved" | "flagged"; comment?: string }) => {
-      const endpoint = type === "collection" ? `/api/collections/${id}/review` : `/api/disbursements/${id}/review`;
-      return apiRequest("PATCH", endpoint, { status, comment, reviewedBy: "Approver" });
+    mutationFn: async ({
+      id,
+      type,
+      status,
+      comment,
+    }: {
+      id: string;
+      type: "collection" | "disbursement";
+      status: "approved" | "flagged";
+      comment?: string;
+    }) => {
+      const endpoint =
+        type === "collection"
+          ? `/api/collections/${id}/review`
+          : `/api/disbursements/${id}/review`;
+      return apiRequest("PATCH", endpoint, {
+        status,
+        comment,
+        reviewedBy: "Approver",
+      });
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: variables.type === "collection" ? ["/api/collections"] : ["/api/disbursements"] });
+      queryClient.invalidateQueries({
+        queryKey:
+          variables.type === "collection"
+            ? ["/api/collections"]
+            : ["/api/disbursements"],
+      });
       toast({
-        title: variables.status === "approved" ? "Transaction Approved" : "Transaction Flagged",
-        description: variables.status === "approved" 
-          ? "The transaction has been approved." 
-          : "The transaction has been flagged for review.",
+        title:
+          variables.status === "approved"
+            ? "Transaction Approved"
+            : "Transaction Flagged",
+        description:
+          variables.status === "approved"
+            ? "The transaction has been approved."
+            : "The transaction has been flagged for review.",
       });
       setReviewDialogOpen(false);
       setReviewComment("");
@@ -55,12 +120,17 @@ export default function ApproverSRE() {
       toast({
         variant: "destructive",
         title: "Review Failed",
-        description: error.message || "Failed to review transaction. Please try again.",
+        description:
+          error.message || "Failed to review transaction. Please try again.",
       });
     },
   });
 
-  const handleReviewClick = (transaction: Collection | Disbursement, type: "collection" | "disbursement", action: "approved" | "flagged") => {
+  const handleReviewClick = (
+    transaction: Collection | Disbursement,
+    type: "collection" | "disbursement",
+    action: "approved" | "flagged",
+  ) => {
     setSelectedTransaction({ ...transaction, type });
     setReviewAction(action);
     setReviewComment(transaction.reviewComment || "");
@@ -69,12 +139,13 @@ export default function ApproverSRE() {
 
   const handleReviewSubmit = () => {
     if (!selectedTransaction) return;
-    
+
     if (reviewAction === "flagged" && !reviewComment.trim()) {
       toast({
         variant: "destructive",
         title: "Comment Required",
-        description: "Please provide a comment explaining why this transaction is being flagged.",
+        description:
+          "Please provide a comment explaining why this transaction is being flagged.",
       });
       return;
     }
@@ -90,9 +161,17 @@ export default function ApproverSRE() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Approved</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            Approved
+          </Badge>
+        );
       case "flagged":
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Flagged</Badge>;
+        return (
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+            Flagged
+          </Badge>
+        );
       default:
         return <Badge variant="outline">Pending</Badge>;
     }
@@ -102,8 +181,14 @@ export default function ApproverSRE() {
     return `₱${parseFloat(amount).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const totalCollections = collections.reduce((sum, c) => sum + parseFloat(c.amount), 0);
-  const totalDisbursements = disbursements.reduce((sum, d) => sum + parseFloat(d.amount), 0);
+  const totalCollections = collections.reduce(
+    (sum, c) => sum + parseFloat(c.amount),
+    0,
+  );
+  const totalDisbursements = disbursements.reduce(
+    (sum, d) => sum + parseFloat(d.amount),
+    0,
+  );
 
   return (
     <ApproverLayout>
@@ -112,19 +197,35 @@ export default function ApproverSRE() {
           <h1 className="text-3xl font-bold text-foreground font-poppins">
             Statement of Receipts & Expenditures (SRE)
           </h1>
-          <p className="text-muted-foreground mt-1">Approve or reject financial transactions</p>
+          <p className="text-muted-foreground mt-1">
+            Approve or reject financial transactions
+          </p>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Transaction Review</CardTitle>
-            <CardDescription>Review transactions and flag any errors for correction</CardDescription>
+            <CardDescription>
+              Review transactions and flag any errors for correction
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "collections" | "disbursements")}>
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) =>
+                setActiveTab(value as "collections" | "disbursements")
+              }
+            >
               <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="collections" data-testid="tab-collections">Collections</TabsTrigger>
-                <TabsTrigger value="disbursements" data-testid="tab-disbursements">Disbursements</TabsTrigger>
+                <TabsTrigger value="collections" data-testid="tab-collections">
+                  Collections
+                </TabsTrigger>
+                <TabsTrigger
+                  value="disbursements"
+                  data-testid="tab-disbursements"
+                >
+                  Disbursements
+                </TabsTrigger>
               </TabsList>
 
               {/* Collections Tab */}
@@ -132,7 +233,9 @@ export default function ApproverSRE() {
                 {collectionsLoading ? (
                   <div className="text-center py-8">Loading collections...</div>
                 ) : collections.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">No collection transactions found</div>
+                  <div className="text-center py-8 text-muted-foreground">
+                    No collection transactions found
+                  </div>
                 ) : (
                   <div className="border rounded-lg overflow-hidden">
                     <Table>
@@ -150,25 +253,48 @@ export default function ApproverSRE() {
                       </TableHeader>
                       <TableBody>
                         {collections.map((collection) => (
-                          <TableRow 
+                          <TableRow
                             key={collection.id}
-                            className={collection.reviewStatus === "flagged" ? "bg-red-50" : ""}
+                            className={
+                              collection.reviewStatus === "flagged"
+                                ? "bg-red-50"
+                                : ""
+                            }
                             data-testid={`row-collection-${collection.id}`}
                           >
-                            <TableCell className="font-medium">{collection.transactionId}</TableCell>
-                            <TableCell>{format(new Date(collection.transactionDate), "MMM dd, yyyy")}</TableCell>
-                            <TableCell className="max-w-xs truncate">{collection.natureOfCollection}</TableCell>
+                            <TableCell className="font-medium">
+                              {collection.transactionId}
+                            </TableCell>
+                            <TableCell>
+                              {format(
+                                new Date(collection.transactionDate),
+                                "MMM dd, yyyy",
+                              )}
+                            </TableCell>
+                            <TableCell className="max-w-xs truncate">
+                              {collection.natureOfCollection}
+                            </TableCell>
                             <TableCell>{collection.payor}</TableCell>
                             <TableCell>{collection.orNumber}</TableCell>
-                            <TableCell className="text-right font-medium">{formatCurrency(collection.amount)}</TableCell>
-                            <TableCell className="text-center">{getStatusBadge(collection.reviewStatus)}</TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatCurrency(collection.amount)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {getStatusBadge(collection.reviewStatus)}
+                            </TableCell>
                             <TableCell className="text-center">
                               <div className="flex gap-2 justify-center">
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   className="text-green-600 border-green-300 hover:bg-green-50"
-                                  onClick={() => handleReviewClick(collection, "collection", "approved")}
+                                  onClick={() =>
+                                    handleReviewClick(
+                                      collection,
+                                      "collection",
+                                      "approved",
+                                    )
+                                  }
                                   data-testid={`button-approve-collection-${collection.id}`}
                                 >
                                   <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -178,7 +304,13 @@ export default function ApproverSRE() {
                                   size="sm"
                                   variant="outline"
                                   className="text-red-600 border-red-300 hover:bg-red-50"
-                                  onClick={() => handleReviewClick(collection, "collection", "flagged")}
+                                  onClick={() =>
+                                    handleReviewClick(
+                                      collection,
+                                      "collection",
+                                      "flagged",
+                                    )
+                                  }
                                   data-testid={`button-flag-collection-${collection.id}`}
                                 >
                                   <Flag className="h-4 w-4 mr-1" />
@@ -196,8 +328,15 @@ export default function ApproverSRE() {
                       </TableBody>
                       <TableFooter>
                         <TableRow>
-                          <TableCell colSpan={5} className="text-right font-semibold">Total Collections:</TableCell>
-                          <TableCell className="text-right font-bold">{formatCurrency(totalCollections.toString())}</TableCell>
+                          <TableCell
+                            colSpan={5}
+                            className="text-right font-semibold"
+                          >
+                            Total Collections:
+                          </TableCell>
+                          <TableCell className="text-right font-bold">
+                            {formatCurrency(totalCollections.toString())}
+                          </TableCell>
                           <TableCell colSpan={2}></TableCell>
                         </TableRow>
                       </TableFooter>
@@ -209,9 +348,13 @@ export default function ApproverSRE() {
               {/* Disbursements Tab */}
               <TabsContent value="disbursements" className="mt-6">
                 {disbursementsLoading ? (
-                  <div className="text-center py-8">Loading disbursements...</div>
+                  <div className="text-center py-8">
+                    Loading disbursements...
+                  </div>
                 ) : disbursements.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">No disbursement transactions found</div>
+                  <div className="text-center py-8 text-muted-foreground">
+                    No disbursement transactions found
+                  </div>
                 ) : (
                   <div className="border rounded-lg overflow-hidden">
                     <Table>
@@ -229,25 +372,48 @@ export default function ApproverSRE() {
                       </TableHeader>
                       <TableBody>
                         {disbursements.map((disbursement) => (
-                          <TableRow 
+                          <TableRow
                             key={disbursement.id}
-                            className={disbursement.reviewStatus === "flagged" ? "bg-red-50" : ""}
+                            className={
+                              disbursement.reviewStatus === "flagged"
+                                ? "bg-red-50"
+                                : ""
+                            }
                             data-testid={`row-disbursement-${disbursement.id}`}
                           >
-                            <TableCell className="font-medium">{disbursement.transactionId}</TableCell>
-                            <TableCell>{format(new Date(disbursement.transactionDate), "MMM dd, yyyy")}</TableCell>
-                            <TableCell className="max-w-xs truncate">{disbursement.natureOfDisbursement}</TableCell>
+                            <TableCell className="font-medium">
+                              {disbursement.transactionId}
+                            </TableCell>
+                            <TableCell>
+                              {format(
+                                new Date(disbursement.transactionDate),
+                                "MMM dd, yyyy",
+                              )}
+                            </TableCell>
+                            <TableCell className="max-w-xs truncate">
+                              {disbursement.natureOfDisbursement}
+                            </TableCell>
                             <TableCell>{disbursement.payee}</TableCell>
                             <TableCell>{disbursement.dvNumber}</TableCell>
-                            <TableCell className="text-right font-medium">{formatCurrency(disbursement.amount)}</TableCell>
-                            <TableCell className="text-center">{getStatusBadge(disbursement.reviewStatus)}</TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatCurrency(disbursement.amount)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {getStatusBadge(disbursement.reviewStatus)}
+                            </TableCell>
                             <TableCell className="text-center">
                               <div className="flex gap-2 justify-center">
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   className="text-green-600 border-green-300 hover:bg-green-50"
-                                  onClick={() => handleReviewClick(disbursement, "disbursement", "approved")}
+                                  onClick={() =>
+                                    handleReviewClick(
+                                      disbursement,
+                                      "disbursement",
+                                      "approved",
+                                    )
+                                  }
                                   data-testid={`button-approve-disbursement-${disbursement.id}`}
                                 >
                                   <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -257,7 +423,13 @@ export default function ApproverSRE() {
                                   size="sm"
                                   variant="outline"
                                   className="text-red-600 border-red-300 hover:bg-red-50"
-                                  onClick={() => handleReviewClick(disbursement, "disbursement", "flagged")}
+                                  onClick={() =>
+                                    handleReviewClick(
+                                      disbursement,
+                                      "disbursement",
+                                      "flagged",
+                                    )
+                                  }
                                   data-testid={`button-flag-disbursement-${disbursement.id}`}
                                 >
                                   <Flag className="h-4 w-4 mr-1" />
@@ -275,8 +447,15 @@ export default function ApproverSRE() {
                       </TableBody>
                       <TableFooter>
                         <TableRow>
-                          <TableCell colSpan={5} className="text-right font-semibold">Total Disbursements:</TableCell>
-                          <TableCell className="text-right font-bold">{formatCurrency(totalDisbursements.toString())}</TableCell>
+                          <TableCell
+                            colSpan={5}
+                            className="text-right font-semibold"
+                          >
+                            Total Disbursements:
+                          </TableCell>
+                          <TableCell className="text-right font-bold">
+                            {formatCurrency(totalDisbursements.toString())}
+                          </TableCell>
                           <TableCell colSpan={2}></TableCell>
                         </TableRow>
                       </TableFooter>
@@ -294,33 +473,41 @@ export default function ApproverSRE() {
         <DialogContent data-testid="dialog-review">
           <DialogHeader>
             <DialogTitle>
-              {reviewAction === "approved" ? "Approve Transaction" : "Flag Transaction"}
+              {reviewAction === "approved"
+                ? "Approve Transaction"
+                : "Flag Transaction"}
             </DialogTitle>
             <DialogDescription>
-              {reviewAction === "approved" 
-                ? "Confirm that this transaction is correct and complete." 
+              {reviewAction === "approved"
+                ? "Confirm that this transaction is correct and complete."
                 : "Please explain what issues you found with this transaction."}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedTransaction && (
             <div className="space-y-4">
               <div className="bg-muted p-4 rounded-lg space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Transaction ID:</span>
-                  <span className="text-sm">{selectedTransaction.transactionId}</span>
+                  <span className="text-sm">
+                    {selectedTransaction.transactionId}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Amount:</span>
-                  <span className="text-sm">{formatCurrency(selectedTransaction.amount)}</span>
+                  <span className="text-sm">
+                    {formatCurrency(selectedTransaction.amount)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">
-                    {selectedTransaction.type === "collection" ? "Payor:" : "Payee:"}
+                    {selectedTransaction.type === "collection"
+                      ? "Payor:"
+                      : "Payee:"}
                   </span>
                   <span className="text-sm">
-                    {selectedTransaction.type === "collection" 
-                      ? (selectedTransaction as Collection).payor 
+                    {selectedTransaction.type === "collection"
+                      ? (selectedTransaction as Collection).payor
                       : (selectedTransaction as Disbursement).payee}
                   </span>
                 </div>
@@ -328,13 +515,18 @@ export default function ApproverSRE() {
 
               <div className="space-y-2">
                 <Label htmlFor="review-comment">
-                  Comment {reviewAction === "flagged" && <span className="text-red-600">*</span>}
+                  Comment{" "}
+                  {reviewAction === "flagged" && (
+                    <span className="text-red-600">*</span>
+                  )}
                 </Label>
                 <Textarea
                   id="review-comment"
-                  placeholder={reviewAction === "approved" 
-                    ? "Optional: Add any notes about this transaction" 
-                    : "Explain what errors or issues you found"}
+                  placeholder={
+                    reviewAction === "approved"
+                      ? "Optional: Add any notes about this transaction"
+                      : "Explain what errors or issues you found"
+                  }
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                   rows={4}
@@ -345,16 +537,28 @@ export default function ApproverSRE() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setReviewDialogOpen(false)} data-testid="button-cancel-review">
+            <Button
+              variant="outline"
+              onClick={() => setReviewDialogOpen(false)}
+              data-testid="button-cancel-review"
+            >
               Cancel
             </Button>
             <Button
               onClick={handleReviewSubmit}
               disabled={reviewMutation.isPending}
-              className={reviewAction === "approved" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+              className={
+                reviewAction === "approved"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-red-600 hover:bg-red-700"
+              }
               data-testid="button-confirm-review"
             >
-              {reviewMutation.isPending ? "Submitting..." : reviewAction === "approved" ? "Approve" : "Flag Transaction"}
+              {reviewMutation.isPending
+                ? "Submitting..."
+                : reviewAction === "approved"
+                  ? "Approve"
+                  : "Flag Transaction"}
             </Button>
           </DialogFooter>
         </DialogContent>

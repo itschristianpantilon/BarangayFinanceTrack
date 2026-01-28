@@ -29,7 +29,11 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Textarea } from "../components/ui/textarea";
-import { insertCollectionSchema, type InsertCollection, type Collection } from "../../../shared/schema";
+import {
+  insertCollectionSchema,
+  type InsertCollection,
+  type Collection,
+} from "../../../deleted/shared/schema";
 import { queryClient, apiRequest } from "../lib/queryClient";
 import { useToast } from "../hooks/use-toast";
 import { getAllNatureOptions, FUND_SOURCES } from "../lib/collectionCategories";
@@ -51,31 +55,33 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
 
   const form = useForm<InsertCollection>({
     resolver: zodResolver(insertCollectionSchema),
-    defaultValues: collection ? {
-      transactionId: collection.transactionId,
-      transactionDate: new Date(collection.transactionDate),
-      natureOfCollection: collection.natureOfCollection,
-      category: collection.category,
-      subcategory: collection.subcategory,
-      purpose: collection.purpose || "",
-      fundSource: collection.fundSource,
-      amount: collection.amount,
-      payor: collection.payor,
-      orNumber: collection.orNumber,
-      remarks: collection.remarks || "",
-    } : {
-      transactionId: "",
-      transactionDate: new Date(),
-      natureOfCollection: "",
-      category: "",
-      subcategory: "",
-      purpose: "",
-      fundSource: "General Fund",
-      amount: "0",
-      payor: "",
-      orNumber: "",
-      remarks: "",
-    },
+    defaultValues: collection
+      ? {
+          transactionId: collection.transactionId,
+          transactionDate: new Date(collection.transactionDate),
+          natureOfCollection: collection.natureOfCollection,
+          category: collection.category,
+          subcategory: collection.subcategory,
+          purpose: collection.purpose || "",
+          fundSource: collection.fundSource,
+          amount: collection.amount,
+          payor: collection.payor,
+          orNumber: collection.orNumber,
+          remarks: collection.remarks || "",
+        }
+      : {
+          transactionId: "",
+          transactionDate: new Date(),
+          natureOfCollection: "",
+          category: "",
+          subcategory: "",
+          purpose: "",
+          fundSource: "General Fund",
+          amount: "0",
+          payor: "",
+          orNumber: "",
+          remarks: "",
+        },
   });
 
   // Reset form when dialog closes or collection prop changes
@@ -118,7 +124,8 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
           toast({
             variant: "destructive",
             title: "Error Generating Transaction ID",
-            description: "Unable to generate transaction ID. Please close and reopen the form.",
+            description:
+              "Unable to generate transaction ID. Please close and reopen the form.",
           });
         });
     }
@@ -136,7 +143,7 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/collections"] });
       toast({
         title: isEditMode ? "Collection Updated" : "Collection Added",
-        description: isEditMode 
+        description: isEditMode
           ? "Collection transaction has been successfully updated."
           : "Collection transaction has been successfully recorded.",
       });
@@ -148,8 +155,12 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
     onError: (error: Error) => {
       toast({
         variant: "destructive",
-        title: isEditMode ? "Error Updating Collection" : "Error Adding Collection",
-        description: error.message || `Failed to ${isEditMode ? 'update' : 'record'} collection. Please try again.`,
+        title: isEditMode
+          ? "Error Updating Collection"
+          : "Error Adding Collection",
+        description:
+          error.message ||
+          `Failed to ${isEditMode ? "update" : "record"} collection. Please try again.`,
       });
     },
   });
@@ -176,16 +187,21 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-poppins">
-            {isEditMode ? "Edit Collection Transaction" : "Add Collection Transaction"}
+            {isEditMode
+              ? "Edit Collection Transaction"
+              : "Add Collection Transaction"}
           </DialogTitle>
           <DialogDescription>
-            {isEditMode 
+            {isEditMode
               ? "Update the financial collection transaction details."
               : "Record a new financial collection transaction with auto-generated transaction ID."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => saveCollection.mutate(data))} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit((data) => saveCollection.mutate(data))}
+            className="space-y-4"
+          >
             {/* Transaction ID - Auto-generated, Read-only */}
             <FormField
               control={form.control}
@@ -194,11 +210,11 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
                 <FormItem>
                   <FormLabel>Transaction ID</FormLabel>
                   <FormControl>
-                    <Input 
-                      {...field} 
-                      readOnly 
+                    <Input
+                      {...field}
+                      readOnly
                       className="bg-muted"
-                      placeholder="Generating..." 
+                      placeholder="Generating..."
                       data-testid="input-transaction-id"
                     />
                   </FormControl>
@@ -215,10 +231,18 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
                 <FormItem>
                   <FormLabel>Transaction Date</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="date" 
-                      value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                      onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
+                    <Input
+                      type="date"
+                      value={
+                        field.value
+                          ? format(new Date(field.value), "yyyy-MM-dd")
+                          : ""
+                      }
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value ? new Date(e.target.value) : null,
+                        )
+                      }
                       data-testid="input-transaction-date"
                     />
                   </FormControl>
@@ -234,11 +258,11 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nature of Collection</FormLabel>
-                  <Select 
+                  <Select
                     onValueChange={(value) => {
                       field.onChange(value);
                       handleNatureChange(value);
-                    }} 
+                    }}
                     value={field.value}
                   >
                     <FormControl>
@@ -247,48 +271,94 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="max-h-[300px]">
-                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted">EXTERNAL SOURCES: TAX REVENUE</div>
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">Share from Local Taxes</div>
+                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted">
+                        EXTERNAL SOURCES: TAX REVENUE
+                      </div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        Share from Local Taxes
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.subcategory === "Share from Local Taxes")
+                        .filter(
+                          (opt) => opt.subcategory === "Share from Local Taxes",
+                        )
                         .map((opt) => (
-                          <SelectItem key={opt.nature} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={opt.nature}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">Share from National Taxes</div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        Share from National Taxes
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.subcategory === "Share from National Taxes")
+                        .filter(
+                          (opt) =>
+                            opt.subcategory === "Share from National Taxes",
+                        )
                         .map((opt) => (
-                          <SelectItem key={opt.nature} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={opt.nature}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">Assistance and Subsidy</div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        Assistance and Subsidy
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.subcategory === "Assistance and Subsidy")
+                        .filter(
+                          (opt) => opt.subcategory === "Assistance and Subsidy",
+                        )
                         .map((opt) => (
-                          <SelectItem key={opt.nature} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={opt.nature}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      
-                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">INTERNAL SOURCES: NON TAX REVENUE</div>
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">Service and Business Income</div>
+
+                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">
+                        INTERNAL SOURCES: NON TAX REVENUE
+                      </div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        Service and Business Income
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.subcategory === "Service and Business Income")
+                        .filter(
+                          (opt) =>
+                            opt.subcategory === "Service and Business Income",
+                        )
                         .map((opt) => (
-                          <SelectItem key={opt.nature} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={opt.nature}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      
-                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">NON-INCOME RECEIPTS</div>
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">Other Receipts</div>
+
+                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">
+                        NON-INCOME RECEIPTS
+                      </div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        Other Receipts
+                      </div>
                       {natureOptions
                         .filter((opt) => opt.subcategory === "Other Receipts")
                         .map((opt) => (
-                          <SelectItem key={opt.nature} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={opt.nature}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
@@ -305,10 +375,12 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
               name="purpose"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Purpose/Particulars/Description (Optional)</FormLabel>
+                  <FormLabel>
+                    Purpose/Particulars/Description (Optional)
+                  </FormLabel>
                   <FormControl>
-                    <Textarea 
-                      {...field} 
+                    <Textarea
+                      {...field}
                       value={field.value || ""}
                       placeholder="Enter purpose or description"
                       data-testid="input-purpose"
@@ -353,11 +425,11 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
                 <FormItem>
                   <FormLabel>Amount (₱)</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       step="0.01"
-                      placeholder="0.00" 
-                      {...field} 
+                      placeholder="0.00"
+                      {...field}
                       data-testid="input-amount"
                     />
                   </FormControl>
@@ -374,9 +446,9 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
                 <FormItem>
                   <FormLabel>Payor</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="e.g., Municipal Treasury" 
-                      {...field} 
+                    <Input
+                      placeholder="e.g., Municipal Treasury"
+                      {...field}
                       data-testid="input-payor"
                     />
                   </FormControl>
@@ -393,9 +465,9 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
                 <FormItem>
                   <FormLabel>OR Number</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="e.g., 13502301" 
-                      {...field} 
+                    <Input
+                      placeholder="e.g., 13502301"
+                      {...field}
                       data-testid="input-or-number"
                     />
                   </FormControl>
@@ -412,8 +484,8 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
                 <FormItem>
                   <FormLabel>Remarks (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      {...field} 
+                    <Textarea
+                      {...field}
                       value={field.value || ""}
                       placeholder="e.g., 2 copies of barangay clearance fees"
                       data-testid="input-remarks"
@@ -425,17 +497,29 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
             />
 
             <div className="flex gap-2 justify-end pt-4">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)} data-testid="button-cancel">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                data-testid="button-cancel"
+              >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                disabled={saveCollection.isPending || (!isEditMode && (idGenerationError || !transactionId))} 
+              <Button
+                type="submit"
+                disabled={
+                  saveCollection.isPending ||
+                  (!isEditMode && (idGenerationError || !transactionId))
+                }
                 data-testid={isEditMode ? "button-update" : "button-submit"}
               >
-                {saveCollection.isPending 
-                  ? (isEditMode ? "Updating..." : "Adding...") 
-                  : (isEditMode ? "Update Collection" : "Add Collection")}
+                {saveCollection.isPending
+                  ? isEditMode
+                    ? "Updating..."
+                    : "Adding..."
+                  : isEditMode
+                    ? "Update Collection"
+                    : "Add Collection"}
               </Button>
             </div>
           </form>

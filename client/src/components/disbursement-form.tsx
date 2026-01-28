@@ -29,10 +29,18 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Textarea } from "../components/ui/textarea";
-import { insertDisbursementSchema, type InsertDisbursement, type Disbursement } from "../../../shared/schema";
+import {
+  insertDisbursementSchema,
+  type InsertDisbursement,
+  type Disbursement,
+} from "../../../deleted/shared/schema";
 import { queryClient, apiRequest } from "../lib/queryClient";
 import { useToast } from "../hooks/use-toast";
-import { getAllDisbursementNatureOptions, DISBURSEMENT_FUND_SOURCES, DISBURSEMENT_CATEGORIES } from "../lib/disbursementCategories";
+import {
+  getAllDisbursementNatureOptions,
+  DISBURSEMENT_FUND_SOURCES,
+  DISBURSEMENT_CATEGORIES,
+} from "../lib/disbursementCategories";
 import { format } from "date-fns";
 
 interface DisbursementFormProps {
@@ -40,7 +48,10 @@ interface DisbursementFormProps {
   trigger?: React.ReactNode;
 }
 
-export function DisbursementForm({ disbursement, trigger }: DisbursementFormProps) {
+export function DisbursementForm({
+  disbursement,
+  trigger,
+}: DisbursementFormProps) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const [transactionId, setTransactionId] = useState("");
@@ -51,31 +62,33 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
 
   const form = useForm<InsertDisbursement>({
     resolver: zodResolver(insertDisbursementSchema),
-    defaultValues: disbursement ? {
-      transactionId: disbursement.transactionId,
-      transactionDate: disbursement.transactionDate,
-      natureOfDisbursement: disbursement.natureOfDisbursement,
-      category: disbursement.category,
-      subcategory: disbursement.subcategory,
-      programDescription: disbursement.programDescription || "",
-      fundSource: disbursement.fundSource,
-      amount: disbursement.amount,
-      payee: disbursement.payee,
-      dvNumber: disbursement.dvNumber,
-      remarks: disbursement.remarks || "",
-    } : {
-      transactionId: "",
-      transactionDate: format(new Date(), 'yyyy-MM-dd'),
-      natureOfDisbursement: "",
-      category: "",
-      subcategory: "",
-      programDescription: "",
-      fundSource: "General Fund",
-      amount: "0",
-      payee: "",
-      dvNumber: "",
-      remarks: "",
-    },
+    defaultValues: disbursement
+      ? {
+          transactionId: disbursement.transactionId,
+          transactionDate: disbursement.transactionDate,
+          natureOfDisbursement: disbursement.natureOfDisbursement,
+          category: disbursement.category,
+          subcategory: disbursement.subcategory,
+          programDescription: disbursement.programDescription || "",
+          fundSource: disbursement.fundSource,
+          amount: disbursement.amount,
+          payee: disbursement.payee,
+          dvNumber: disbursement.dvNumber,
+          remarks: disbursement.remarks || "",
+        }
+      : {
+          transactionId: "",
+          transactionDate: format(new Date(), "yyyy-MM-dd"),
+          natureOfDisbursement: "",
+          category: "",
+          subcategory: "",
+          programDescription: "",
+          fundSource: "General Fund",
+          amount: "0",
+          payee: "",
+          dvNumber: "",
+          remarks: "",
+        },
   });
 
   // Reset form when dialog closes or disbursement prop changes
@@ -118,7 +131,8 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
           toast({
             variant: "destructive",
             title: "Error Generating Transaction ID",
-            description: "Unable to generate transaction ID. Please close and reopen the form.",
+            description:
+              "Unable to generate transaction ID. Please close and reopen the form.",
           });
         });
     }
@@ -127,7 +141,11 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
   const saveDisbursement = useMutation({
     mutationFn: async (data: InsertDisbursement) => {
       if (isEditMode) {
-        return apiRequest("PATCH", `/api/disbursements/${disbursement.id}`, data);
+        return apiRequest(
+          "PATCH",
+          `/api/disbursements/${disbursement.id}`,
+          data,
+        );
       } else {
         return apiRequest("POST", "/api/disbursements", data);
       }
@@ -136,7 +154,7 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
       queryClient.invalidateQueries({ queryKey: ["/api/disbursements"] });
       toast({
         title: isEditMode ? "Disbursement Updated" : "Disbursement Added",
-        description: isEditMode 
+        description: isEditMode
           ? "Disbursement transaction has been successfully updated."
           : "Disbursement transaction has been successfully recorded.",
       });
@@ -148,8 +166,12 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
     onError: (error: Error) => {
       toast({
         variant: "destructive",
-        title: isEditMode ? "Error Updating Disbursement" : "Error Adding Disbursement",
-        description: error.message || `Failed to ${isEditMode ? 'update' : 'record'} disbursement. Please try again.`,
+        title: isEditMode
+          ? "Error Updating Disbursement"
+          : "Error Adding Disbursement",
+        description:
+          error.message ||
+          `Failed to ${isEditMode ? "update" : "record"} disbursement. Please try again.`,
       });
     },
   });
@@ -176,16 +198,23 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-poppins">
-            {isEditMode ? "Edit Disbursement Transaction" : "Add Disbursement Transaction"}
+            {isEditMode
+              ? "Edit Disbursement Transaction"
+              : "Add Disbursement Transaction"}
           </DialogTitle>
           <DialogDescription>
-            {isEditMode 
+            {isEditMode
               ? "Update the financial disbursement transaction details."
               : "Record a new financial disbursement transaction with auto-generated transaction ID."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => saveDisbursement.mutate(data))} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit((data) =>
+              saveDisbursement.mutate(data),
+            )}
+            className="space-y-4"
+          >
             {/* Transaction ID - Auto-generated, Read-only */}
             <FormField
               control={form.control}
@@ -194,11 +223,11 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
                 <FormItem>
                   <FormLabel>Transaction ID</FormLabel>
                   <FormControl>
-                    <Input 
-                      {...field} 
-                      readOnly 
+                    <Input
+                      {...field}
+                      readOnly
                       className="bg-muted"
-                      placeholder="Generating..." 
+                      placeholder="Generating..."
                       data-testid="input-transaction-id"
                     />
                   </FormControl>
@@ -215,8 +244,8 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
                 <FormItem>
                   <FormLabel>Transaction Date</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="date" 
+                    <Input
+                      type="date"
                       {...field}
                       data-testid="input-transaction-date"
                     />
@@ -233,11 +262,11 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nature of Disbursement</FormLabel>
-                  <Select 
+                  <Select
                     onValueChange={(value) => {
                       field.onChange(value);
                       handleNatureChange(value);
-                    }} 
+                    }}
                     value={field.value}
                   >
                     <FormControl>
@@ -247,105 +276,208 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
                     </FormControl>
                     <SelectContent className="max-h-[300px]">
                       {/* A. Personal Services */}
-                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted">A. Personal Services</div>
+                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted">
+                        A. Personal Services
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.category === "A. Personal Services")
+                        .filter(
+                          (opt) => opt.category === "A. Personal Services",
+                        )
                         .map((opt) => (
-                          <SelectItem key={`${opt.category}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.category}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      
+
                       {/* B. MOOE */}
-                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">B. Maintenance and Other Operating Expenses (MOOE)</div>
+                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">
+                        B. Maintenance and Other Operating Expenses (MOOE)
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.category === "B. Maintenance and Other Operating Expenses (MOOE)")
+                        .filter(
+                          (opt) =>
+                            opt.category ===
+                            "B. Maintenance and Other Operating Expenses (MOOE)",
+                        )
                         .map((opt) => (
-                          <SelectItem key={`${opt.category}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.category}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      
+
                       {/* C. Capital Outlay */}
-                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">C. Capital Outlay</div>
+                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">
+                        C. Capital Outlay
+                      </div>
                       {natureOptions
                         .filter((opt) => opt.category === "C. Capital Outlay")
                         .map((opt) => (
-                          <SelectItem key={`${opt.category}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.category}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      
+
                       {/* D. SPA */}
-                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">D. Special Purpose Appropriations (SPA)</div>
+                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">
+                        D. Special Purpose Appropriations (SPA)
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.category === "D. Special Purpose Appropriations (SPA)")
+                        .filter(
+                          (opt) =>
+                            opt.category ===
+                            "D. Special Purpose Appropriations (SPA)",
+                        )
                         .map((opt) => (
-                          <SelectItem key={`${opt.category}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.category}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      
+
                       {/* E. Social Services */}
-                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">E. Basic Services - SOCIAL SERVICES</div>
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">Day Care Services</div>
+                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">
+                        E. Basic Services - SOCIAL SERVICES
+                      </div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        Day Care Services
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.subcategory === "Day Care Services")
+                        .filter(
+                          (opt) => opt.subcategory === "Day Care Services",
+                        )
                         .map((opt) => (
-                          <SelectItem key={`${opt.subcategory}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.subcategory}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">Health and Nutrition Services</div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        Health and Nutrition Services
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.subcategory === "Health and Nutrition Services")
+                        .filter(
+                          (opt) =>
+                            opt.subcategory === "Health and Nutrition Services",
+                        )
                         .map((opt) => (
-                          <SelectItem key={`${opt.subcategory}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.subcategory}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">Peace and Order Services</div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        Peace and Order Services
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.subcategory === "Peace and Order Services")
+                        .filter(
+                          (opt) =>
+                            opt.subcategory === "Peace and Order Services",
+                        )
                         .map((opt) => (
-                          <SelectItem key={`${opt.subcategory}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.subcategory}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">Katarungang Pambarangay Services</div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        Katarungang Pambarangay Services
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.subcategory === "Katarungang Pambarangay Services")
+                        .filter(
+                          (opt) =>
+                            opt.subcategory ===
+                            "Katarungang Pambarangay Services",
+                        )
                         .map((opt) => (
-                          <SelectItem key={`${opt.subcategory}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.subcategory}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      
+
                       {/* F. Economic Services */}
-                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">F. Infrastructure Projects - ECONOMIC SERVICES</div>
+                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">
+                        F. Infrastructure Projects - ECONOMIC SERVICES
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.category === "F. Infrastructure Projects - 20% Development Fund - ECONOMIC SERVICES")
+                        .filter(
+                          (opt) =>
+                            opt.category ===
+                            "F. Infrastructure Projects - 20% Development Fund - ECONOMIC SERVICES",
+                        )
                         .map((opt) => (
-                          <SelectItem key={`${opt.category}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.category}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      
+
                       {/* G. Other Services */}
-                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">G. Other Services</div>
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">QRF Activities</div>
+                      <div className="px-2 py-1.5 text-sm font-semibold bg-muted mt-2">
+                        G. Other Services
+                      </div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        QRF Activities
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.subcategory === "Quick Response Fund (QRF) Activities")
+                        .filter(
+                          (opt) =>
+                            opt.subcategory ===
+                            "Quick Response Fund (QRF) Activities",
+                        )
                         .map((opt) => (
-                          <SelectItem key={`${opt.subcategory}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.subcategory}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
-                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">Other Community Services</div>
+                      <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                        Other Community Services
+                      </div>
                       {natureOptions
-                        .filter((opt) => opt.subcategory === "Other Community Services")
+                        .filter(
+                          (opt) =>
+                            opt.subcategory === "Other Community Services",
+                        )
                         .map((opt) => (
-                          <SelectItem key={`${opt.subcategory}-${opt.nature}`} value={opt.nature} className="pl-8">
+                          <SelectItem
+                            key={`${opt.subcategory}-${opt.nature}`}
+                            value={opt.nature}
+                            className="pl-8"
+                          >
                             {opt.nature}
                           </SelectItem>
                         ))}
@@ -362,10 +494,12 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
               name="programDescription"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Program/Project/Activity Description (Optional)</FormLabel>
+                  <FormLabel>
+                    Program/Project/Activity Description (Optional)
+                  </FormLabel>
                   <FormControl>
-                    <Textarea 
-                      {...field} 
+                    <Textarea
+                      {...field}
                       value={field.value || ""}
                       placeholder="e.g., Conduct of day care sessions - hon of day care workers"
                       data-testid="input-program-description"
@@ -410,11 +544,11 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
                 <FormItem>
                   <FormLabel>Amount (₱)</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       step="0.01"
-                      placeholder="0.00" 
-                      {...field} 
+                      placeholder="0.00"
+                      {...field}
                       data-testid="input-amount"
                     />
                   </FormControl>
@@ -431,9 +565,9 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
                 <FormItem>
                   <FormLabel>Payee</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="e.g., Day Care Worker - Maria Santos" 
-                      {...field} 
+                    <Input
+                      placeholder="e.g., Day Care Worker - Maria Santos"
+                      {...field}
                       data-testid="input-payee"
                     />
                   </FormControl>
@@ -450,9 +584,9 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
                 <FormItem>
                   <FormLabel>DV Number</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="e.g., 2025-001" 
-                      {...field} 
+                    <Input
+                      placeholder="e.g., 2025-001"
+                      {...field}
                       data-testid="input-dv-number"
                     />
                   </FormControl>
@@ -469,8 +603,8 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
                 <FormItem>
                   <FormLabel>Remarks (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      {...field} 
+                    <Textarea
+                      {...field}
                       value={field.value || ""}
                       placeholder="Additional notes or comments"
                       data-testid="input-remarks"
@@ -482,17 +616,29 @@ export function DisbursementForm({ disbursement, trigger }: DisbursementFormProp
             />
 
             <div className="flex gap-2 justify-end pt-4">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)} data-testid="button-cancel">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                data-testid="button-cancel"
+              >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                disabled={saveDisbursement.isPending || (!isEditMode && (idGenerationError || !transactionId))} 
+              <Button
+                type="submit"
+                disabled={
+                  saveDisbursement.isPending ||
+                  (!isEditMode && (idGenerationError || !transactionId))
+                }
                 data-testid={isEditMode ? "button-update" : "button-submit"}
               >
-                {saveDisbursement.isPending 
-                  ? (isEditMode ? "Updating..." : "Adding...") 
-                  : (isEditMode ? "Update Disbursement" : "Add Disbursement")}
+                {saveDisbursement.isPending
+                  ? isEditMode
+                    ? "Updating..."
+                    : "Adding..."
+                  : isEditMode
+                    ? "Update Disbursement"
+                    : "Add Disbursement"}
               </Button>
             </div>
           </form>
