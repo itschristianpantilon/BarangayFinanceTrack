@@ -203,3 +203,6 @@ VALUES
 ('council1', 'council123', 'reviewer', 'Barangay Councilor 1', 'Barangay Council', 1),
 ('approver', 'approver123', 'approver', 'Budget Approver', 'Kapitan', 1);
 
+DELETE FROM users
+where id > 0;
+ALTER TABLE users AUTO_INCREMENT = 1;

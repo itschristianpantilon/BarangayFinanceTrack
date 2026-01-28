@@ -6,6 +6,7 @@ def get_all_users():
         cursor = conn.cursor(dictionary=True)
         query = """
             SELECT 
+                id
                 username,
                 full_name,
                 position, 
