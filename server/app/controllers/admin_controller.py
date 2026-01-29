@@ -3,7 +3,7 @@ from app.utils.hash_password import hash_password
 from app.model.admin.get_all_users_db import get_all_users
 from app.model.admin.insert_user_db import insert_user
 from app.model.admin.put_user_db import update_user, update_user_password, delete_user
-from app.middleware.validate_user import (
+from app.validator.validate_user import (
     validate_user,
     validate_put_user                      
 )

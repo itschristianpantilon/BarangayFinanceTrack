@@ -21,29 +21,27 @@ def insert_budget_entries_db(entries, created_by):
                 allocation_id,
                 created_by
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  %s)
         """
-
-        for entry in entries:
-            cursor.execute(query, (
-                entry["transaction_id"],
-                entry["transaction_date"],
-                entry["category"],
-                entry.get("subcategory"),
-                entry["amount"],
-                entry.get("fund_source"),
-                entry.get("payee"),
-                entry.get("dv_number"),
-                entry.get("expenditure_program"),
-                entry.get("program_description"),
-                entry.get("remarks"),
-                entry.get("allocation_id"),
-                created_by
-            ))
+        cursor.execute(query, (
+            entries["transaction_id"],
+            entries["transaction_date"],
+            entries["category"],
+            entries.get("subcategory"),
+            entries["amount"],
+            entries.get("fund_source"),
+            entries.get("payee"),
+            entries.get("dv_number"),
+            entries.get("expenditure_program"),
+            entries.get("program_description"),
+            entries.get("remarks"),
+            entries.get("allocation_id"),
+            created_by
+        ))
 
         conn.commit()
         conn.close()
-        return True
+        return cursor.rowcount == 1
 
     except Exception as e:
         print(f"Error inserting budget entries: {e}")
