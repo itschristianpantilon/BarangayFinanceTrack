@@ -1,12 +1,16 @@
 from flask import request, jsonify
-from app.model.encoder.insert_budget_entries_db import insert_budget_entries_db
-from app.model.encoder.get_budget_entries_db import get_budget_entries_db
-from app.model.encoder.put_budget_entries_db import put_budget_entries_db
-from app.model.encoder.delete_budget_entries_db import delete_budget_entries_db
-from app.model.encoder.insert_collection_db import insert_collection_db
-from app.model.encoder.get_collection_db import get_collection_db
-from app.model.encoder.put_collection_db import put_collection_db
-from app.model.encoder.delete_collection_db import delete_collection_db
+from app.model.encoder.budget_entries_db import (
+    insert_budget_entries_db,
+    get_budget_entries_db,
+    put_budget_entries_db,
+    delete_budget_entries_db,
+)
+from app.model.encoder.collections_db import (
+    insert_collection_db,
+    get_collection_db,
+    put_collection_db,
+    delete_collection_db,
+)
 # BUDGET ENTRIES
 def insert_budget_entries_controller():
     try:
@@ -60,7 +64,7 @@ def update_budget_entries_controller():
         if success:
             return jsonify({"message": "Budget entry updated successfully"}), 200
         else:
-            return jsonify({"message": "Failed to update budget entry"}), 500
+            return jsonify({"message": "There is no budget entry try to check the id"}), 500
     except Exception as e:
         return jsonify({"message": str(e)}), 500
     
@@ -126,7 +130,7 @@ def put_collection_controller():
         if success:
             return jsonify({"message": "Collection entries updated successfully"}), 200
         else:
-            return jsonify({"message": "Failed to update collection entries"}), 500
+            return jsonify({"message": "There is no collection to update"}), 500
     except Exception as e:
         return jsonify({"message": str(e)}), 500
 
@@ -134,7 +138,9 @@ def delete_collection_controller():
     ...
     try:
         ...
-        success = delete_collection_db()
+        data = request.get_json()
+        collection_id = data["collection_id"]
+        success = delete_collection_db(collection_id)
 
         if success:
             return jsonify({"message": "Collection entries deleted successfully"}), 200

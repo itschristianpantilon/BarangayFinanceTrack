@@ -1,10 +1,7 @@
-from app.database.connection import get_db_connection
+from app.utils.execute_query import execute_query
 
 def update_user(user_id, user_data):
     try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
-
         query = """
             UPDATE users
             SET role = %s,
@@ -14,86 +11,44 @@ def update_user(user_id, user_data):
             WHERE id = %s
         """
 
-        cursor.execute(
-            query,
-            (
-                user_data["role"],
-                user_data["fullname"],
-                user_data["position"],
-                user_data["is_active"],
-                user_id
-            )
-        )
+        affected = execute_query(query, (
+            user_data["role"],
+            user_data["fullname"],
+            user_data["position"],
+            user_data["is_active"],
+            user_id
+        ))
 
-        connection.commit()
-
-        # check if a row was actually updated
-        success = cursor.rowcount == 1
-
-        cursor.close()
-        connection.close()
-
-        return success
-
+        return affected == 1
     except Exception as e:
-        print(f"Error updating user: {e}")
+        print(e)
         return False
-
+    
 
 def update_user_password(user_id, password):
     try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
-
         query = """
             UPDATE users
             SET password = %s
             WHERE id = %s
         """
 
-        cursor.execute(
-            query,
-            (password, user_id)
-        )
-
-        connection.commit()
-
-        success = cursor.rowcount == 1
-
-        cursor.close()
-        connection.close()
-
-        return success
-
+        affected = execute_query(query, (password, user_id))
+        return affected == 1
     except Exception as e:
-        print(f"Error updating user password: {e}")
+        print(e)
         return False
 
 def delete_user(user_id):
     try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
-
         query = """
             UPDATE users
             SET is_active = FALSE
             WHERE id = %s
         """
 
-        cursor.execute(
-            query,
-            (user_id,)
-        )
-
-        connection.commit()
-
-        success = cursor.rowcount == 1
-
-        cursor.close()
-        connection.close()
-
-        return success
-
+        affected = execute_query(query, (user_id,))
+        return affected == 1
     except Exception as e:
-        print(f"Error deleting user: {e}")
+        print(e)
         return False

@@ -77,11 +77,26 @@ def view_collection():
 @encoder_bp.route('/put-collection', methods=['PUT'])
 def put_collection():
     ...
+      # {
+    # "id": 4
+    # "transaction_id": "COLL-2026-001",
+    # "transaction_date": "2026-01-29",
+    # "nature_of_collection": "Barangay Clearance",
+    # "description": "Payment for barangay clearance",
+    # "fund_source": "General Fund",
+    # "amount": 150.00,
+    # "payor": "Juan Dela Cruz",
+    # "or_number": "OR-2026-0001",
+    # "remarks": "Paid in cash",
+    # }
     return put_collection_controller()
 
 @encoder_bp.route('/delete-collection', methods=['DELETE'])
 def delete_collection():
     ...
+    # {
+    #     "collection_id": 1
+    # }
     return delete_collection_controller()
 
 

@@ -25,3 +25,4 @@ def execute_query(query, params=None):
     conn.close()
 
     return affected_rows
+
