@@ -69,7 +69,7 @@ def insert_collection():
     # }
     return insert_collection_controller()
 
-@encoder_bp.route('/get-collection', methods=['POST'])
+@encoder_bp.route('/get-collection', methods=['GET'])
 def view_collection():
     ...
     return get_collection_controller()
