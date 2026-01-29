@@ -13,8 +13,6 @@ def insert_budget_entries_controller():
 
         created_by = entries["created_by"]
 
-        # Wrap single entry into a lis
-
         success = insert_budget_entries_db(entries, created_by)
 
         if success:
@@ -29,6 +27,17 @@ def insert_budget_entries_controller():
 def get_budget_entries_controller():
     ...
     try:
-        return jsonify({"message": "Budget entries retrieved successfully"}), 200
+        data = request.get_json()
+        year = data["year"]
+        
+        if not year:
+            return jsonify({"message": "No year provided"}), 400
+
+        entries = get_budget_entries_db(year)
+
+        if entries:
+            return jsonify(entries), 200
+        else:
+            return jsonify({"message": "No budget entries found for the given year"}), 404
     except Exception as e:
         return jsonify({"message": str(e)}), 500

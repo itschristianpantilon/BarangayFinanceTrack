@@ -19,7 +19,7 @@ def get_budget_entries_db(year):
         FROM budget_entries be
         JOIN budget_allocations ba
             ON be.allocation_id = ba.id
-        WHERE ba.year = ?
+        WHERE ba.year = %s
         ORDER BY be.transaction_date DESC
     """, (year,))
 

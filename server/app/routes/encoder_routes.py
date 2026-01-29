@@ -1,6 +1,7 @@
 from flask import Blueprint
 from app.controllers.encoder_controller import (
-    insert_budget_entries_controller
+    insert_budget_entries_controller,
+    get_budget_entries_controller
 )
 
 encoder_bp = Blueprint('encoder_bp', __name__)
@@ -25,7 +26,11 @@ def post_budget_entries():
     # }
     return insert_budget_entries_controller()
 
-@encoder_bp.route('/get-budget-entries', methods=['GET'])
+@encoder_bp.route('/get-budget-entries', methods=['POST'])
 def view_budget_entries():
     ...
+    #  {
+    # "year": 2026
+    # }
+    return get_budget_entries_controller()
 
