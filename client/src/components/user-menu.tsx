@@ -18,12 +18,14 @@ export function UserMenu() {
     return null;
   }
 
-  const initials = user.fullName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+// const initials = user.username
+//   ? user.username
+//       .split(" ")
+//       .map((n) => n[0])
+//       .join("")
+//       .toUpperCase()
+//       .slice(0, 2)
+//   : "U";
 
   const handleLogout = async () => {
     await logout();
@@ -35,20 +37,20 @@ export function UserMenu() {
         <Button variant="ghost" className="flex items-center gap-2" data-testid="button-user-menu">
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-primary text-primary-foreground">
-              {initials}
+              {/* {initials} */}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-start text-sm">
-            <span className="font-medium">{user.fullName}</span>
-            <span className="text-xs text-muted-foreground">{user.position}</span>
+            <span className="font-medium">{user.username}</span>
+            {/* <span className="text-xs text-muted-foreground">{user.position}</span> */}
           </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.fullName}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user.position}</p>
+            <p className="text-sm font-medium leading-none">{user.username}</p>
+            {/* <p className="text-xs leading-none text-muted-foreground">{user.position}</p> */}
             <p className="text-xs leading-none text-muted-foreground mt-1">@{user.username}</p>
           </div>
         </DropdownMenuLabel>

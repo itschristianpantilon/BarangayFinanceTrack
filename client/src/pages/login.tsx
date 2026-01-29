@@ -92,7 +92,8 @@ export default function Login() {
         values.username === STATIC_USER.username &&
         values.password === STATIC_USER.password
       ) {
-        const redirectPath = roleRoutes[STATIC_USER.role];
+        const redirectPath = roleRoutes[STATIC_USER.role] || "/admin/users";
+
 
         if (!redirectPath) {
           toast({
