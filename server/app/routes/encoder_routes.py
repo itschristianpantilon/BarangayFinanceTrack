@@ -1,7 +1,9 @@
 from flask import Blueprint
 from app.controllers.encoder_controller import (
     insert_budget_entries_controller,
-    get_budget_entries_controller
+    get_budget_entries_controller,
+    update_budget_entries_controller,
+    delete_budget_entries_controller
 )
 
 encoder_bp = Blueprint('encoder_bp', __name__)
@@ -33,4 +35,14 @@ def view_budget_entries():
     # "year": 2026
     # }
     return get_budget_entries_controller()
+
+@encoder_bp.route('/put-budget-entries', methods=['PUT'])
+def put_budget_entries():
+    ...
+    return update_budget_entries_controller()
+
+@encoder_bp.route('/delete-budget-entries', methods=['DELETE'])
+def delete_budget_entries():
+    ...
+    return delete_budget_entries_controller()
 
