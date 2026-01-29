@@ -126,12 +126,18 @@ CREATE TABLE collections (
   review_status ENUM('pending','approved','rejected') DEFAULT 'pending',
   review_comment TEXT,
   reviewed_by INT,
+  created_by INT,
   reviewed_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_collections_reviewer
     FOREIGN KEY (reviewed_by) REFERENCES users(id)
 ) ENGINE=InnoDB;
+ALTER TABLE collections
+ADD COLUMN description TEXT AFTER nature_of_collection,
+ADD COLUMN fund_source VARCHAR(150) AFTER description,
+ADD COLUMN or_number VARCHAR(100) AFTER fund_source,
+ADD COLUMN remarks TEXT AFTER or_number;
 
 -- =========================================
 -- DISBURSEMENTS (EXPENSE WITH REVIEW)
@@ -211,6 +217,9 @@ REFERENCES budget_allocations(id);
 
 SELECT * FROM users;
 SELECT * FROM budget_entries;
+SELECT * FROM collections;
+
+
 
 INSERT INTO users 
 (username, password, role, full_name, position, is_active)

@@ -3,8 +3,10 @@ from app.model.encoder.insert_budget_entries_db import insert_budget_entries_db
 from app.model.encoder.get_budget_entries_db import get_budget_entries_db
 from app.model.encoder.put_budget_entries_db import put_budget_entries_db
 from app.model.encoder.delete_budget_entries_db import delete_budget_entries_db
-from flask import request, jsonify
-
+from app.model.encoder.insert_collection_db import insert_collection_db
+from app.model.encoder.get_collection_db import get_collection_db
+from app.model.encoder.put_collection_db import put_collection_db
+from app.model.encoder.delete_collection_db import delete_collection_db
 # BUDGET ENTRIES
 def insert_budget_entries_controller():
     try:
@@ -80,13 +82,66 @@ def delete_budget_entries_controller():
             return jsonify({"message": "Failed to delete budget entry"}), 500
     except Exception as e:
         return jsonify({"message": str(e)}), 500
-    
-  
-  
+ 
 #COLLECTION 
+def insert_collection_controller():
+    ...
+    try:
+        ...
+        entry = request.get_json()
+        if not entry:
+            return jsonify({"message": "No entries provided"}), 400
+        
+        success = insert_collection_db(entry)
 
+        if success:
+            return jsonify({"message": "Collection entries inserted successfully"}), 200
+        else:
+            return jsonify({"message": "Failed to insert collection entries"}), 500  
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
+def get_collection_controller():
+    ...
+    try:
+        ...
+        collection = get_collection_db()
+        if collection:
+            return jsonify(collection), 200
+        else:
+            return jsonify({"message": "Failed to get collection"}), 500
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
+def put_collection_controller():
+    ...
+    try:
+        ...
+        entry = request.get_json()
+        if not entry:
+            return jsonify({"message": "No entries provided"}), 400
+
+        success = put_collection_db(entry)
+
+        if success:
+            return jsonify({"message": "Collection entries updated successfully"}), 200
+        else:
+            return jsonify({"message": "Failed to update collection entries"}), 500
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+def delete_collection_controller():
+    ...
+    try:
+        ...
+        success = delete_collection_db()
+
+        if success:
+            return jsonify({"message": "Collection entries deleted successfully"}), 200
+        else:
+            return jsonify({"message": "Failed to delete collection entries"}), 500
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 #DISBURSEMENT
 
 

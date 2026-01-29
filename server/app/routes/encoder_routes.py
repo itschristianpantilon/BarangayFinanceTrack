@@ -3,7 +3,11 @@ from app.controllers.encoder_controller import (
     insert_budget_entries_controller,
     get_budget_entries_controller,
     update_budget_entries_controller,
-    delete_budget_entries_controller
+    delete_budget_entries_controller,
+    insert_collection_controller,
+    get_collection_controller,
+    put_collection_controller,
+    delete_collection_controller
 )
 
 encoder_bp = Blueprint('encoder_bp', __name__)
@@ -45,4 +49,42 @@ def put_budget_entries():
 def delete_budget_entries():
     ...
     return delete_budget_entries_controller()
+
+# collection routes
+
+@encoder_bp.route('/insert-collection', methods=['POST'])
+def insert_collection():
+    ...
+    # {
+    # "transaction_id": "COLL-2026-001",
+    # "transaction_date": "2026-01-29",
+    # "nature_of_collection": "Barangay Clearance",
+    # "description": "Payment for barangay clearance",
+    # "fund_source": "General Fund",
+    # "amount": 150.00,
+    # "payor": "Juan Dela Cruz",
+    # "or_number": "OR-2026-0001",
+    # "remarks": "Paid in cash",
+    # "created_by": 4
+    # }
+    return insert_collection_controller()
+
+@encoder_bp.route('/get-collection', methods=['POST'])
+def view_collection():
+    ...
+    return get_collection_controller()
+
+@encoder_bp.route('/put-collection', methods=['PUT'])
+def put_collection():
+    ...
+    return put_collection_controller()
+
+@encoder_bp.route('/delete-collection', methods=['DELETE'])
+def delete_collection():
+    ...
+    return delete_collection_controller()
+
+
+
+
 
