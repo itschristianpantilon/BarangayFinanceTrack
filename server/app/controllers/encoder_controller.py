@@ -17,7 +17,35 @@ from app.model.encoder.disbursements_db import (
     put_disbursement_db,
     delete_disbursement_db,
 )
+
+from app.services.total_amount_calculation import (
+    total_amount_budget_allocation,
+    total_amount_collection,
+    total_amount_disbursement,
+)
+#CALCULATIONS===========================================+
+def get_total_amount_budget_allocation_controller():
+    try:
+        total_amount = total_amount_budget_allocation()
+        return jsonify(total_amount), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+def get_total_amount_collection_controller():
+    try:
+        total_amount = total_amount_collection()
+        return jsonify(total_amount), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
     
+def get_total_amount_disbursement_controller():
+    try:
+        total_amount = total_amount_disbursement()
+        return jsonify(total_amount), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+ 
+# CRUD ==================================================
 # BUDGET ENTRIES
 def insert_budget_entries_controller():
     try:
