@@ -5,6 +5,12 @@ export const api = {
   auth: {
     login: `${API_BASE_URL}/login`,
   },
+  users: {
+    getAll: `${API_BASE_URL}/get-all-users`,
+    add: `${API_BASE_URL}/add-user`,
+    edit: `${API_BASE_URL}/edit-user`,
+    delete: `${API_BASE_URL}/delete-user`,
+  },
 };
 
 // Generic API call function with error handling
@@ -24,7 +30,7 @@ export async function apiCall<T>(
     const data = await response.json();
 
     if (!response.ok) {
-      return { error: data.message || "An error occurred" };
+      return { error: data.error || data.message || "An error occurred" };
     }
 
     return { data };

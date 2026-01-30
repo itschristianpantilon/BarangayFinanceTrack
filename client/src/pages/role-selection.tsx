@@ -2,65 +2,18 @@ import { useState, type KeyboardEvent } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { 
-  FileEdit, 
-  CheckCircle, 
-  UserCheck, 
-  ClipboardCheck, 
-  Eye,
-  Shield
+  FileEdit, CheckCircle, UserCheck, ClipboardCheck, Eye, Shield, MapPin 
 } from "lucide-react";
 import logoPath from "../assets/san_agustin.jpg";
-//import barangayHallPath from "@assets/IMG_20251102_172947_819_1762095297396.jpg";
+import barangayHallPath from "../assets/backgroundImage.jpg";
 
 const roles = [
-  {
-    id: "admin",
-    title: "Admin",
-    description: "Manage users, system settings, and full access control",
-    icon: Shield,
-    color: "from-blue-500/10 to-blue-500/20",
-    iconColor: "text-blue-600",
-  },
-  {
-    id: "encoder",
-    title: "Encoder",
-    description: "Input and manage financial transactions and records",
-    icon: FileEdit,
-    color: "from-chart-1/10 to-chart-1/20",
-    iconColor: "text-chart-1",
-  },
-  {
-    id: "checker",
-    title: "Checker",
-    description: "Verify accuracy of financial data entries",
-    icon: CheckCircle,
-    color: "from-chart-2/10 to-chart-2/20",
-    iconColor: "text-chart-2",
-  },
-  {
-    id: "approver",
-    title: "Approver",
-    description: "Review and approve financial transactions",
-    icon: UserCheck,
-    color: "from-chart-3/10 to-chart-3/20",
-    iconColor: "text-chart-3",
-  },
-  {
-    id: "reviewer",
-    title: "Reviewer",
-    description: "Conduct comprehensive financial audits and reviews",
-    icon: ClipboardCheck,
-    color: "from-chart-4/10 to-chart-4/20",
-    iconColor: "text-chart-4",
-  },
-  {
-    id: "viewer",
-    title: "Viewer",
-    description: "View financial reports and dashboards",
-    icon: Eye,
-    color: "from-chart-5/10 to-chart-5/20",
-    iconColor: "text-chart-5",
-  },
+  { id: "admin", title: "Admin", description: "System governance, user management, and full audit logs.", icon: Shield, borderColor: "border-blue-500", iconBg: "bg-blue-50", iconColor: "text-blue-600" },
+  { id: "encoder", title: "Encoder", description: "Entry and management of daily financial transactions.", icon: FileEdit, borderColor: "border-emerald-500", iconBg: "bg-emerald-50", iconColor: "text-emerald-600" },
+  { id: "checker", title: "Checker", description: "Validation and verification of encoded financial data.", icon: CheckCircle, borderColor: "border-amber-500", iconBg: "bg-amber-50", iconColor: "text-amber-600" },
+  { id: "approver", title: "Approver", description: "Final authorization of pending financial documents.", icon: UserCheck, borderColor: "border-purple-500", iconBg: "bg-purple-50", iconColor: "text-purple-600" },
+  { id: "reviewer", title: "Reviewer", description: "Comprehensive auditing and performance reviews.", icon: ClipboardCheck, borderColor: "border-rose-500", iconBg: "bg-rose-50", iconColor: "text-rose-600" },
+  { id: "viewer", title: "Viewer", description: "Read-only access to reports and financial analytics.", icon: Eye, borderColor: "border-slate-500", iconBg: "bg-slate-50", iconColor: "text-slate-600" },
 ];
 
 export default function RoleSelection() {
@@ -71,123 +24,91 @@ export default function RoleSelection() {
     setSelectedRole(roleId);
     localStorage.setItem("userRole", roleId);
     setTimeout(() => {
-      // Redirect to role-specific dashboard or login
-      if (roleId === "admin") {
-        setLocation("/login"); // Admin needs to login first
-      } else if (roleId === "encoder") {
-        setLocation("/encoder/dashboard");
-      } else if (roleId === "checker") {
-        setLocation("/checker/dashboard");
-      } else if (roleId === "approver") {
-        setLocation("/approver/dashboard");
-      } else if (roleId === "reviewer") {
-        setLocation("/reviewer/dashboard");
-      } else if (roleId === "viewer") {
-        setLocation("/viewer/dashboard");
-      } else {
-        setLocation("/dashboard");
-      }
+      setLocation(roleId === "admin" ? "/login" : `/${roleId}/dashboard`);
     }, 300);
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>, roleId: string) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleRoleSelect(roleId);
-    }
-  };
-
   return (
-    <div className="min-h-screen w-full bg-background">
-      {/* Hero Section with Barangay Hall Background */}
-      <div className="relative h-64 w-full overflow-hidden">
+    <div className="min-h-screen w-full bg-[#f8fafc]">
+      {/* --- HERO SECTION --- */}
+      <div className="relative h-[300px] w-full overflow-hidden bg-slate-900">
         <div 
-          className="absolute inset-0 bg-cover bg-center"
-          //style={{ backgroundImage: `url(${barangayHallPath})` }}
+          className="absolute inset-0 bg-cover bg-center opacity-40 transition-transform duration-1000 hover:scale-105"
+          style={{ backgroundImage: `url(${barangayHallPath})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/60 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#f8fafc]" />
         
-        <div className="relative flex h-full items-center justify-center px-8">
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <img 
-                src={logoPath} 
-                alt="Barangay San Agustin Logo" 
-                className="h-20 w-20 rounded-full object-cover ring-4 ring-white/20"
-              />
+        <div className="relative h-full max-w-7xl mx-auto flex items-center px-6 md:px-12">
+          <div className="bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/20 flex items-center gap-6">
+            <div className="relative">
+               <img src={logoPath} alt="Logo" className="h-20 w-20 rounded-xl shadow-md object-cover" />
+               <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-1 rounded-full">
+                 <Shield className="w-4 h-4" />
+               </div>
             </div>
-            <h1 className="text-4xl font-bold text-white font-poppins tracking-tight mb-2">
-              Barangay San Agustin
-            </h1>
-            <p className="text-xl text-white/90 font-medium">
-              Financial Monitoring System
-            </p>
-            <p className="text-sm text-white/80 mt-1">
-              Iba, Zambales
-            </p>
+            <div>
+              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Barangay San Agustin</h1>
+              <div className="flex items-center gap-2 text-slate-600 mt-1 font-medium">
+                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded uppercase">FinTrack v2.0</span>
+                <span className="text-slate-300">|</span>
+                <p className="text-sm flex items-center"><MapPin className="w-3 h-3 mr-1"/> Iba, Zambales</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Role Selection Section */}
-      <div className="max-w-6xl mx-auto px-8 py-12">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-foreground font-poppins mb-3">
-            Select Your Role
-          </h2>
-          <p className="text-muted-foreground text-lg">
-            Choose your role to access the financial monitoring system
-          </p>
+      {/* --- ROLE SELECTION SECTION --- */}
+      <div className="max-w-7xl mx-auto px-6 -mt-12 pb-20 relative z-10">
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold text-slate-800">Select Access Portal</h2>
+          <p className="text-slate-500">Please choose your designated role to continue to the dashboard.</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {roles.map((role) => {
             const Icon = role.icon;
+            const isSelected = selectedRole === role.id;
+            
             return (
-              <Card 
+              <button
                 key={role.id}
-                className={`cursor-pointer hover-elevate active-elevate-2 border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-                  selectedRole === role.id 
-                    ? 'border-primary shadow-lg' 
-                    : 'border-card-border hover:border-primary/50'
-                } bg-gradient-to-br ${role.color}`}
                 onClick={() => handleRoleSelect(role.id)}
-                onKeyDown={(e) => handleKeyDown(e, role.id)}
-                role="button"
-                tabIndex={0}
-                aria-label={`Select ${role.title} role: ${role.description}`}
-                data-testid={`card-role-${role.id}`}
+                className={`group relative text-left transition-all duration-300 hover:-translate-y-1 focus:outline-none`}
               >
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className={`rounded-lg bg-background/80 p-3`}>
-                      <Icon className={`h-8 w-8 ${role.iconColor}`} />
+                <Card className={`h-full border-t-4 ${role.borderColor} transition-shadow duration-300 ${
+                  isSelected ? 'shadow-2xl ring-2 ring-blue-500/20' : 'shadow-sm hover:shadow-xl'
+                }`}>
+                  <CardHeader className="pb-2">
+                    <div className={`w-12 h-12 rounded-xl ${role.iconBg} flex items-center justify-center transition-colors group-hover:scale-110 duration-300`}>
+                      <Icon className={`h-6 w-6 ${role.iconColor}`} />
                     </div>
-                  </div>
-                  <CardTitle className="font-poppins text-xl">
-                    {role.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {role.description}
-                  </p>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <CardTitle className="text-lg font-bold text-slate-800 mb-2">{role.title}</CardTitle>
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                      {role.description}
+                    </p>
+                    <div className="mt-4 flex items-center text-xs font-semibold text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider">
+                      Enter Dashboard →
+                    </div>
+                  </CardContent>
+                </Card>
+              </button>
             );
           })}
         </div>
 
-        <div className="mt-12 text-center">
-          <Card className="bg-muted/50 border-muted-foreground/20">
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">
-                <strong>Note:</strong> Your role determines the level of access and permissions 
-                you have within the financial monitoring system. Select the appropriate role 
-                assigned to you by the barangay administrator.
-              </p>
-            </CardContent>
-          </Card>
+        {/* --- FOOTER INFO --- */}
+        <div className="mt-16 max-w-2xl mx-auto">
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-4">
+            <div className="bg-blue-100 p-2 rounded-full h-fit">
+               <Shield className="w-4 h-4 text-blue-600" />
+            </div>
+            <p className="text-xs text-blue-800 leading-relaxed italic">
+              <strong>Security Protocol:</strong> Access is logged by IP address. Your role permissions are strictly monitored. If you cannot find your role, contact the Systems Administrator in the Barangay Hall.
+            </p>
+          </div>
         </div>
       </div>
     </div>

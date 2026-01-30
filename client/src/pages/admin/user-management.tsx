@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import { useForm } from "react-hook-form";
 import {
@@ -43,29 +43,42 @@ import {
   LogOut,
   Activity,
   ArrowLeft,
+  Loader2,
 } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { UserMenu } from "../../components/user-menu";
+import { useToast } from "../../hooks/use-toast";
+import { api, apiCall } from "../../utils/api";
 import logoPath from "../../assets/san_agustin.jpg";
 
-/* -------------------- LOCAL STATIC TYPE -------------------- */
+/* -------------------- TYPES -------------------- */
 
-type UserWithoutPassword = {
-  id: string;
+type UserRole =
+  | "superadmin"
+  | "admin"
+  | "encoder"
+  | "checker"
+  | "reviewer"
+  | "approver"
+  | "viewer";
+
+type User = {
+  id: number;
   username: string;
-  fullName: string;
+  full_name: string;
   position: string;
-  role:
-    | "superadmin"
-    | "admin"
-    | "encoder"
-    | "checker"
-    | "reviewer"
-    | "approver"
-    | "viewer";
-  isActive: "true" | "false";
-  createdAt: Date;
-  lastLogin: Date | null;
+  role: UserRole;
+  is_active: boolean;
+};
+
+type UserFormData = {
+  user_id?: number;
+  username: string;
+  password?: string;
+  fullname: string;
+  position: string;
+  role: UserRole;
+  is_active: "active" | "inactive";
 };
 
 /* -------------------- STATIC DATA -------------------- */
@@ -77,29 +90,7 @@ const roles = [
   { value: "checker", label: "Checker (Bookkeeper)" },
   { value: "reviewer", label: "Reviewer (Council)" },
   { value: "approver", label: "Approver" },
-];
-
-const initialUsers: UserWithoutPassword[] = [
-  {
-    id: "1",
-    username: "admin01",
-    fullName: "Juan Dela Cruz",
-    position: "Barangay Captain",
-    role: "admin",
-    isActive: "true",
-    createdAt: new Date(),
-    lastLogin: null,
-  },
-  {
-    id: "2",
-    username: "encoder01",
-    fullName: "Maria Santos",
-    position: "Treasurer",
-    role: "encoder",
-    isActive: "true",
-    createdAt: new Date(),
-    lastLogin: null,
-  },
+  { value: "viewer", label: "Viewer" },
 ];
 
 /* -------------------- LAYOUT -------------------- */
@@ -111,11 +102,6 @@ interface AdminLayoutProps {
 function AdminLayout({ children }: AdminLayoutProps) {
   const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
-
-  // if (!user || (user.role !== "admin" && user.role !== "superadmin")) {
-  //   setLocation("/login");
-  //   return null;
-  // }
 
   const handleLogout = () => {
     localStorage.clear();
@@ -182,59 +168,213 @@ function AdminLayout({ children }: AdminLayoutProps) {
 /* -------------------- PAGE -------------------- */
 
 export default function UserManagement() {
-  const [users, setUsers] = useState<UserWithoutPassword[]>(initialUsers);
+  const { toast } = useToast();
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserWithoutPassword | null>(
-    null,
-  );
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<UserWithoutPassword>({
+  const form = useForm<UserFormData>({
     defaultValues: {
-      id: "",
       username: "",
-      fullName: "",
+      password: "",
+      fullname: "",
       position: "",
       role: "encoder",
-      isActive: "true",
-      createdAt: new Date(),
-      lastLogin: null,
+      is_active: "active",
     },
   });
 
+  /* -------------------- FETCH USERS -------------------- */
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await apiCall<User[]>(api.users.getAll, {
+        method: "GET",
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error,
+        });
+        return;
+      }
+
+      if (data) {
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load users",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  /* -------------------- HANDLERS -------------------- */
+
   const handleAddUser = () => {
     setEditingUser(null);
-    form.reset();
+    form.reset({
+      username: "",
+      password: "",
+      fullname: "",
+      position: "",
+      role: "encoder",
+      is_active: "active",
+    });
     setIsDialogOpen(true);
   };
 
-  const handleEditUser = (user: UserWithoutPassword) => {
+  const handleEditUser = (user: User) => {
     setEditingUser(user);
-    form.reset(user);
+    form.reset({
+      user_id: user.id,
+      username: user.username,
+      password: "", // Leave blank - only update if filled
+      fullname: user.full_name,
+      position: user.position,
+      role: user.role,
+      is_active: user.is_active ? "active" : "inactive",
+    });
     setIsDialogOpen(true);
   };
 
-  const handleDeleteUser = (id: string) => {
-    if (!confirm("Delete this user?")) return;
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+  const handleDeleteUser = async (user: User) => {
+    if (!confirm(`Are you sure you want to deactivate ${user.username}?`)) {
+      return;
+    }
+
+    try {
+      const { data, error } = await apiCall(api.users.delete, {
+        method: "PUT",
+        body: JSON.stringify({ user_id: user.id }),
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error,
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "User deactivated successfully",
+      });
+
+      // Refresh users list
+      fetchUsers();
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to deactivate user",
+      });
+    }
   };
 
-  const onSubmit = (data: UserWithoutPassword) => {
-    if (editingUser) {
-      setUsers((prev) =>
-        prev.map((u) => (u.id === editingUser.id ? { ...u, ...data } : u)),
-      );
-    } else {
-      setUsers((prev) => [
-        ...prev,
-        {
-          ...data,
-          id: crypto.randomUUID(),
-          createdAt: new Date(),
-          lastLogin: null,
-        },
-      ]);
+  const onSubmit = async (data: UserFormData) => {
+    setIsSubmitting(true);
+
+    try {
+      if (editingUser) {
+        // EDIT USER
+        const payload: any = {
+          user_id: data.user_id,
+          fullname: data.fullname,
+          position: data.position,
+          role: data.role,
+          is_active: data.is_active,
+        };
+
+        // Only include password if it's filled
+        if (data.password && data.password.trim() !== "") {
+          payload.password = data.password;
+        }
+
+        const { error } = await apiCall(api.users.edit, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: error,
+          });
+          return;
+        }
+
+        toast({
+          title: "Success",
+          description: "User updated successfully",
+        });
+      } else {
+        // ADD USER
+        if (!data.password || data.password.trim() === "") {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Password is required for new users",
+          });
+          return;
+        }
+
+        const { error } = await apiCall(api.users.add, {
+          method: "POST",
+          body: JSON.stringify({
+            username: data.username,
+            password: data.password,
+            fullname: data.fullname,
+            position: data.position,
+            role: data.role,
+            is_active: data.is_active,
+          }),
+        });
+
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: error,
+          });
+          return;
+        }
+
+        toast({
+          title: "Success",
+          description: "User added successfully",
+        });
+      }
+
+      setIsDialogOpen(false);
+      fetchUsers();
+    } catch (error) {
+      console.error("Failed to save user:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save user",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsDialogOpen(false);
   };
 
   const badgeVariant = (role: string) =>
@@ -243,14 +383,14 @@ export default function UserManagement() {
   return (
     <AdminLayout>
       <div className="p-6 space-y-6">
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">User Management</h1>
             <p className="text-muted-foreground">
               Manage system users and access
             </p>
           </div>
-          <Button onClick={handleAddUser}>
+          <Button onClick={handleAddUser} disabled={isLoading}>
             <UserPlus className="mr-2 h-4 w-4" /> Add User
           </Button>
         </div>
@@ -258,58 +398,82 @@ export default function UserManagement() {
         <Card>
           <CardHeader>
             <CardTitle>All Users</CardTitle>
-            <CardDescription>{users.length} users</CardDescription>
+            <CardDescription>
+              {isLoading ? "Loading..." : `${users.length} users`}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((u) => (
-                  <TableRow key={u.id}>
-                    <TableCell>{u.username}</TableCell>
-                    <TableCell>{u.fullName}</TableCell>
-                    <TableCell>{u.position}</TableCell>
-                    <TableCell>
-                      <Badge variant={badgeVariant(u.role)}>
-                        {roles.find((r) => r.value === u.role)?.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {u.isActive === "true" ? (
-                        <ShieldCheck className="text-green-600" />
-                      ) : (
-                        <ShieldOff className="text-red-600" />
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleEditUser(u)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDeleteUser(u.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : users.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No users found
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Full Name</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">
+                        {user.username}
+                      </TableCell>
+                      <TableCell>{user.full_name}</TableCell>
+                      <TableCell>{user.position}</TableCell>
+                      <TableCell>
+                        <Badge variant={badgeVariant(user.role)}>
+                          {roles.find((r) => r.value === user.role)?.label ||
+                            user.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {user.is_active ? (
+                          <div className="flex items-center gap-2 text-green-600">
+                            <ShieldCheck className="h-4 w-4" />
+                            <span className="text-sm">Active</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-red-600">
+                            <ShieldOff className="h-4 w-4" />
+                            <span className="text-sm">Inactive</span>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleEditUser(user)}
+                          title="Edit user"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleDeleteUser(user)}
+                          disabled={!user.is_active}
+                          title="Deactivate user"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
@@ -317,36 +481,134 @@ export default function UserManagement() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingUser ? "Edit User" : "Add User"}
+                {editingUser ? "Edit User" : "Add New User"}
               </DialogTitle>
             </DialogHeader>
 
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-              <Input placeholder="Username" {...form.register("username")} />
-              <Input placeholder="Full Name" {...form.register("fullName")} />
-              <Input placeholder="Position" {...form.register("position")} />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Username</label>
+                <Input
+                  placeholder="Enter username"
+                  {...form.register("username", {
+                    required: "Username is required",
+                  })}
+                  disabled={!!editingUser} // Disable username edit
+                />
+                {form.formState.errors.username && (
+                  <p className="text-sm text-red-500">
+                    {form.formState.errors.username.message}
+                  </p>
+                )}
+              </div>
 
-              <Select
-                onValueChange={(v) =>
-                  form.setValue("role", v as UserWithoutPassword["role"])
-                }
-                defaultValue={form.getValues("role")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((r) => (
-                    <SelectItem key={r.value} value={r.value}>
-                      {r.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Password {editingUser && "(leave blank to keep current)"}
+                </label>
+                <Input
+                  type="password"
+                  placeholder={
+                    editingUser ? "Enter new password" : "Enter password"
+                  }
+                  {...form.register("password", {
+                    required: editingUser ? false : "Password is required",
+                  })}
+                />
+                {form.formState.errors.password && (
+                  <p className="text-sm text-red-500">
+                    {form.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Full Name</label>
+                <Input
+                  placeholder="Enter full name"
+                  {...form.register("fullname", {
+                    required: "Full name is required",
+                  })}
+                />
+                {form.formState.errors.fullname && (
+                  <p className="text-sm text-red-500">
+                    {form.formState.errors.fullname.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Position</label>
+                <Input
+                  placeholder="Enter position"
+                  {...form.register("position", {
+                    required: "Position is required",
+                  })}
+                />
+                {form.formState.errors.position && (
+                  <p className="text-sm text-red-500">
+                    {form.formState.errors.position.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Role</label>
+                <Select
+                  onValueChange={(v) =>
+                    form.setValue("role", v as UserRole)
+                  }
+                  defaultValue={form.getValues("role")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>
+                        {r.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
+                <Select
+                  onValueChange={(v) =>
+                    form.setValue("is_active", v as "active" | "inactive")
+                  }
+                  defaultValue={form.getValues("is_active")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <DialogFooter>
-                <Button type="submit">
-                  {editingUser ? "Update" : "Create"}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {editingUser ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    <>{editingUser ? "Update User" : "Create User"}</>
+                  )}
                 </Button>
               </DialogFooter>
             </form>

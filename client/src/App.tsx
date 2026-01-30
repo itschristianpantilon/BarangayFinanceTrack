@@ -128,9 +128,9 @@ function MainApp() {
   if (isRoleBasedPage) {
     return (
       <div className="flex flex-col h-screen w-full">
-        <header className="flex items-center justify-end p-4 border-b border-border bg-background sticky top-0 z-50">
+        {/* <header className="flex items-center justify-end p-4 border-b border-border bg-background sticky top-0 z-50">
           <ThemeToggle />
-        </header>
+        </header> */}
         <main className="flex-1 overflow-hidden">
           <AppRoutes />
         </main>
