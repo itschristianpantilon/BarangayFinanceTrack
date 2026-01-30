@@ -7,7 +7,11 @@ from app.controllers.encoder_controller import (
     insert_collection_controller,
     get_collection_controller,
     put_collection_controller,
-    delete_collection_controller
+    delete_collection_controller,
+    insert_disbursement_controller,
+    get_disbursement_controller,
+    put_disbursement_controller,
+    delete_disbursement_controller
 )
 
 encoder_bp = Blueprint('encoder_bp', __name__)
@@ -99,7 +103,53 @@ def delete_collection():
     # }
     return delete_collection_controller()
 
+#disbursement
 
+@encoder_bp.route('/insert-disbursement', methods=['POST'])
+def insert_disbursement():
+    ...
+    # {
+    # "transaction_id": "COLL-2026-001",
+    # "transaction_date": "2026-01-29",
+    # "nature_of_disbursement": "Barangay Clearance",
+    # "description": "Payment for barangay clearance",
+    # "fund_source": "General Fund",
+    # "amount": 150.00,
+    # "payee": "Juan Dela Cruz",
+    # "or_number": "OR-2026-0001",
+    # "remarks": "Paid in cash",
+    # "created_by": 4,
+    # "allocation_id": 1
+    # }
+    return insert_disbursement_controller()
 
+@encoder_bp.route('/get-disbursement', methods=['GET'])
+def view_disbursement():
+    ...
+    return get_disbursement_controller()
 
+@encoder_bp.route('/put-disbursement', methods=['PUT'])
+def put_disbursement():
+    ...
+    #   {
+    # "id": 4
+    # "transaction_id": "COLL-2026-001",
+    # "transaction_date": "2026-01-29",
+    # "nature_of_disbursement": "Barangay Clearance",
+    # "description": "Payment for barangay clearance",
+    # "fund_source": "General Fund",
+    # "amount": 150.00,
+    # "payor": "Juan Dela Cruz",
+    # "or_number": "OR-2026-0001",
+    # "remarks": "Paid in cash",
+    # }
+    return put_disbursement_controller()
+
+@encoder_bp.route('/delete-disbursement', methods=['DELETE'])
+def delete_disbursement():
+    ...
+    # {
+    #     "disbursement_id": 1
+    # }
+    return delete_disbursement_controller()
 

@@ -160,7 +160,11 @@ CREATE TABLE disbursements (
   CONSTRAINT fk_disbursements_reviewer
     FOREIGN KEY (reviewed_by) REFERENCES users(id)
 ) ENGINE=InnoDB;
-
+ALTER TABLE disbursements
+ADD COLUMN description TEXT AFTER nature_of_disbursement,
+ADD COLUMN fund_source VARCHAR(150) AFTER description,
+ADD COLUMN or_number VARCHAR(100) AFTER fund_source,
+ADD COLUMN remarks TEXT AFTER or_number;
 -- =========================================
 -- DFUR PROJECTS
 -- =========================================
@@ -218,7 +222,7 @@ REFERENCES budget_allocations(id);
 SELECT * FROM users;
 SELECT * FROM budget_entries;
 SELECT * FROM collections;
-
+SELECT * FROM disbursements;
 
 
 INSERT INTO users 

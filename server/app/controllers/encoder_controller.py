@@ -11,6 +11,13 @@ from app.model.encoder.collections_db import (
     put_collection_db,
     delete_collection_db,
 )
+from app.model.encoder.disbursements_db import (
+    insert_disbursement_db,
+    get_disbursement_db,
+    put_disbursement_db,
+    delete_disbursement_db,
+)
+    
 # BUDGET ENTRIES
 def insert_budget_entries_controller():
     try:
@@ -88,6 +95,69 @@ def delete_budget_entries_controller():
         return jsonify({"message": str(e)}), 500
  
 #COLLECTION 
+def insert_disbursement_controller():
+    ...
+    try:
+        ...
+        entry = request.get_json()
+        if not entry:
+            return jsonify({"message": "No entries provided"}), 400
+        
+        success = insert_disbursement_db(entry)
+
+        if success:
+            return jsonify({"message": "disbursement entries inserted successfully"}), 200
+        else:
+            return jsonify({"message": "Failed to insert disbursement entries"}), 500  
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+def get_disbursement_controller():
+    ...
+    try:
+        ...
+        disbursement = get_disbursement_db()
+        if disbursement:
+            return jsonify(disbursement), 200
+        else:
+            return jsonify({"message": "Failed to get disbursement"}), 500
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+def put_disbursement_controller():
+    ...
+    try:
+        ...
+        entry = request.get_json()
+        if not entry:
+            return jsonify({"message": "No entries provided"}), 400
+
+        success = put_disbursement_db(entry)
+
+        if success:
+            return jsonify({"message": "disbursement entries updated successfully"}), 200
+        else:
+            return jsonify({"message": "There is no disbursement to update"}), 500
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+def delete_disbursement_controller():
+    ...
+    try:
+        ...
+        data = request.get_json()
+        disbursement_id = data["disbursement_id"]
+        success = delete_disbursement_db(disbursement_id)
+
+        if success:
+            return jsonify({"message": "disbursement entries deleted successfully"}), 200
+        else:
+            return jsonify({"message": "Failed to delete disbursement entries"}), 500
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+    
+    
+#DISBURSEMENT
 def insert_collection_controller():
     ...
     try:
@@ -148,8 +218,6 @@ def delete_collection_controller():
             return jsonify({"message": "Failed to delete collection entries"}), 500
     except Exception as e:
         return jsonify({"message": str(e)}), 500
-#DISBURSEMENT
-
 
 
 #DFE PROJECT  
