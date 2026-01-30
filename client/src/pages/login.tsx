@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   ArrowLeft,
-  LogIn,
   User,
   Lock,
   ShieldCheck,
@@ -27,10 +26,10 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "../components/ui/form";
 import { useToast } from "../hooks/use-toast";
+import { api, apiCall } from "../utils/api";
 
 import logoPath from "../assets/san_agustin.jpg";
 
@@ -44,20 +43,20 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+interface LoginResponse {
+  message: string;
+  user: {
+    id: number;
+    username: string;
+    role: string;
+  };
+}
+
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  /* -------------------- */
-  /* Static Credentials */
-  /* -------------------- */
-  const STATIC_USER = {
-    username: "admin",
-    password: "password123",
-    role: "admin",
-  };
 
   /* -------------------- */
   /* React Hook Form */
@@ -69,7 +68,10 @@ export default function Login() {
       password: "",
     },
   });
-  // role
+
+  /* -------------------- */
+  /* Role Routes */
+  /* -------------------- */
   const roleRoutes: Record<string, string> = {
     superadmin: "/admin/users",
     admin: "/admin/users",
@@ -79,54 +81,56 @@ export default function Login() {
     approver: "/approver/dashboard",
     viewer: "/viewer/dashboard",
   };
+
   /* -------------------- */
   /* Submit Handler */
   /* -------------------- */
   const onSubmit = async (values: LoginForm) => {
     setIsLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     try {
-      if (
-        values.username === STATIC_USER.username &&
-        values.password === STATIC_USER.password
-      ) {
-        const redirectPath = roleRoutes[STATIC_USER.role] || "/admin/users";
+      const { data, error } = await apiCall<LoginResponse>(api.auth.login, {
+        method: "POST",
+        body: JSON.stringify({
+          username: values.username,
+          password: values.password,
+        }),
+      });
 
-
-        if (!redirectPath) {
-          toast({
-            variant: "destructive",
-            title: "Access Error",
-            description: "No route assigned for this role.",
-          });
-          return;
-        }
-
-        // Persist static auth
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("role", STATIC_USER.role);
-
-        toast({
-          title: "Login Successful",
-          description: `Welcome back, ${STATIC_USER.role}.`,
-        });
-
-        //  Redirect AFTER state is saved
-        setLocation(redirectPath);
-      } else {
+      if (error || !data) {
         toast({
           variant: "destructive",
           title: "Login Failed",
-          description: "Invalid username or password.",
+          description: error || "Invalid credentials.",
         });
+        return;
       }
-    } catch {
+
+      // Login successful
+      const { user } = data;
+
+      // Store authentication data
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("userId", user.id.toString());
+      localStorage.setItem("username", user.username);
+      localStorage.setItem("role", user.role);
+
+      // Get redirect path based on role
+      const redirectPath = roleRoutes[user.role.toLowerCase()] || "/admin/users";
+
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${user.username}.`,
+      });
+
+      // Redirect to appropriate dashboard
+      setLocation(redirectPath);
+    } catch (error) {
+      console.error("Login error:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "An unexpected error occurred.",
+        description: "An unexpected error occurred. Please try again.",
       });
     } finally {
       setIsLoading(false);
@@ -134,18 +138,13 @@ export default function Login() {
   };
 
   return (
-    // BACKGROUND: Softened the gradient for a more 'premium' feel
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-100 via-slate-50 to-blue-50 dark:from-slate-900 dark:via-slate-950 dark:to-emerald-950">
-      {/* CARD: Increased border radius (rounded-3xl) for a modern look */}
       <Card className="w-full max-w-[380px] border-0 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl ring-1 ring-white/50 dark:ring-slate-800 rounded-3xl overflow-hidden">
-        {/* DECORATIVE TOP LINE */}
         <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500" />
 
         <CardHeader className="space-y-4 text-center pt-8 pb-6">
-          {/* LOGO SECTION: Smaller & Minimalist */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              {/* Subtle static glow behind logo */}
               <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full"></div>
 
               <div className="relative bg-white dark:bg-slate-950 p-1 rounded-2xl shadow-sm ring-1 ring-slate-100 dark:ring-slate-800">
@@ -154,7 +153,6 @@ export default function Login() {
                   alt="Logo"
                   className="h-14 w-14 rounded-xl object-cover"
                 />
-                {/* Micro Badge */}
                 <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white p-[2px] rounded-full ring-2 ring-white dark:ring-slate-900">
                   <ShieldCheck className="w-3 h-3" />
                 </div>
@@ -183,7 +181,6 @@ export default function Login() {
                   <FormItem>
                     <FormControl>
                       <div className="relative group transition-all duration-300">
-                        {/* Floating Icon */}
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 group-focus-within:scale-110 transition-all duration-300">
                           <User className="h-4 w-4" />
                         </div>
@@ -191,7 +188,6 @@ export default function Login() {
                           placeholder="Username"
                           {...field}
                           disabled={isLoading}
-                          // MODERN INPUT STYLE: Filled background that lightens on focus
                           className="pl-11 h-12 bg-slate-50/80 dark:bg-slate-900/50 border-0 ring-1 ring-slate-200/50 dark:ring-slate-800 focus-visible:bg-white dark:focus-visible:bg-slate-950 focus-visible:ring-2 focus-visible:ring-emerald-500/30 transition-all duration-300 rounded-2xl text-sm font-medium placeholder:text-slate-400"
                         />
                       </div>
@@ -209,26 +205,23 @@ export default function Login() {
                   <FormItem>
                     <FormControl>
                       <div className="relative group transition-all duration-300">
-                        {/* Left Icon (Lock) */}
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 group-focus-within:scale-110 transition-all duration-300">
                           <Lock className="h-4 w-4" />
                         </div>
 
                         <Input
-                          // TOGGLE TYPE HERE
                           type={showPassword ? "text" : "password"}
                           placeholder="Password"
                           {...field}
                           disabled={isLoading}
-                          // Added 'pr-12' to prevent text overlapping with the eye icon
                           className="pl-11 pr-12 h-12 bg-slate-50/80 dark:bg-slate-900/50 border-0 ring-1 ring-slate-200/50 dark:ring-slate-800 focus-visible:bg-white dark:focus-visible:bg-slate-950 focus-visible:ring-2 focus-visible:ring-emerald-500/30 transition-all duration-300 rounded-2xl text-sm font-medium placeholder:text-slate-400"
                         />
 
-                        {/* Right Icon (Show/Hide Button) */}
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 focus:text-emerald-600 transition-colors outline-none"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
                         >
                           {showPassword ? (
                             <EyeOff className="h-4 w-4" />
