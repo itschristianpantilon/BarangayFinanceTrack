@@ -23,8 +23,8 @@ def add_user_controller():
         ...
         user = request.get_json()
         #validate is_active
-        # if user["is_active"] == "active":
-        #     user["is_active"] = True
+        if user["is_active"] == "active":
+            user["is_active"] = True
         # else:
         #     user["is_active"] = False
         # validation for user data
@@ -51,8 +51,8 @@ def edit_user_controller():
         user = request.get_json()
         user_id = user["user_id"]
          #validate is_active
-        # if user["is_active"] == "active":
-        #     user["is_active"] = True
+        if user["is_active"] == "active":
+            user["is_active"] = True
         # else:
         #     user["is_active"] = False
         #validation for data

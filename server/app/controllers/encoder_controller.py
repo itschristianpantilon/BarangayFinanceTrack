@@ -31,6 +31,11 @@ from app.model.encoder.dfur_db import(
     put_dfur_db,
     delete_dfur_db
 )
+from app.services.total_dfur_projects import (
+    total_dfur_projects, 
+    total_approved_budget, 
+    total_active_projects
+)
 #CALCULATIONS===========================================+
 def get_total_amount_budget_allocation_controller():
     try:
@@ -317,5 +322,27 @@ def delete_dfur_controller():
             return jsonify({"message": "Successfully deleted data"}), 200
         else:
             return jsonify({"message": "Failed to delete data"}), 500
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+    
+def handle_dfur_data():
+    try:
+        ...
+        data = {}
+        data["total_projects"] = total_dfur_projects()
+        data["total_approved_budget"] = total_approved_budget()
+        data["total_active_projects"] = total_active_projects()
+        return data
+        
+    except Exception as e:
+        return "Failed to handle data: "
+    
+def total_data_dfur_controller():
+    try:
+        result = handle_dfur_data()
+        if result:
+            return jsonify({"message": "Successfully retrieved data", "data": result}), 200
+        else:
+            return jsonify({"message": "Invalid data name"}), 400
     except Exception as e:
         return jsonify({"message": str(e)}), 500

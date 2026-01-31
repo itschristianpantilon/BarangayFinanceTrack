@@ -19,7 +19,8 @@ from app.controllers.encoder_controller import (
     insert_dfur_controller,
     get_dfur_controller,
     put_dfur_controller,
-    delete_dfur_controller
+    delete_dfur_controller,
+    total_data_dfur_controller
 )
 
 encoder_bp = Blueprint('encoder_bp', __name__)
@@ -226,7 +227,8 @@ def update_dfur_project():
     #     "target_completion_date": "2026-02-15",
     #     "stats": "palnned",
     #     "no_extensions": 0,
-    #     "remarks": "Project progressing on schedule; materials delivered"
+    #     "remarks": "Project progressing on schedule; materials delivered",
+    #     "is_active": 1
     # }
     return put_dfur_controller()
 
@@ -237,3 +239,8 @@ def delete_dfur_project():
     #     "id": "1"
     # }
     return delete_dfur_controller()
+
+@encoder_bp.route('/get-total-data-dfur-project', methods=['GET'])
+def total_data_dfur_project():
+    ...
+    return total_data_dfur_controller()

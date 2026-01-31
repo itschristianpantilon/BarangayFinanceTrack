@@ -66,7 +66,8 @@ def put_dfur_db(data):
                target_completion_date = %s,
                stats = %s,
                no_extensions = %s,
-               remarks = %s
+               remarks = %s,
+               is_active = %s
            WHERE id = %s;
        """
        params = (
@@ -82,6 +83,7 @@ def put_dfur_db(data):
            data['stats'],
            data['no_extensions'],
            data['remarks'],
+           data['is_active'],
            data['id']
        )
        return execute_query(query, params)
