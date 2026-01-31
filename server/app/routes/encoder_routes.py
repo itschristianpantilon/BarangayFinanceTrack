@@ -14,7 +14,8 @@ from app.controllers.encoder_controller import (
     insert_disbursement_controller,
     get_disbursement_controller,
     put_disbursement_controller,
-    delete_disbursement_controller
+    delete_disbursement_controller,
+    get_data_base_range_date_controller
 )
 
 encoder_bp = Blueprint('encoder_bp', __name__)
@@ -171,3 +172,12 @@ def delete_disbursement():
     # }
     return delete_disbursement_controller()
 
+@encoder_bp.route('/get-data-range', methods=["POST"])
+def get_data_range():
+    ...
+    # {
+    #     "start_date": "2022-01-01",
+    #     "end_date": "2022-12-31",
+    #     "data_name": "collections"
+    # }
+    return get_data_base_range_date_controller()

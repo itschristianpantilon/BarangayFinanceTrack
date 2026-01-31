@@ -94,3 +94,15 @@ def put_disbursement_db(disbursement):
 def delete_disbursement_db(disbursement_id):
     query = "DELETE FROM disbursements WHERE id = %s"
     return execute_query(query, (disbursement_id,)) == 1
+
+def get_data_base_date_disbursement_db(start_date, end_date):
+    try:
+        query = """
+            SELECT * FROM disbursements
+            WHERE transaction_date >= %s
+            AND transaction_date < DATE_ADD(%s, INTERVAL 1 DAY)
+        """
+        return fetch_all(query, (start_date, end_date))
+    except Exception as e:
+        print("Error getting disbursements:", e)
+        return []

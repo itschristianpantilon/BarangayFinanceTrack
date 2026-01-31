@@ -90,3 +90,15 @@ def put_collection_db(collection):
 def delete_collection_db(collection_id):
     query = "DELETE FROM collections WHERE id = %s"
     return execute_query(query, (collection_id,)) == 1
+
+def get_data_base_date_collection_db(start_date, end_date):
+    try:
+        query = """
+            SELECT * FROM collections
+            WHERE transaction_date >= %s
+            AND transaction_date < DATE_ADD(%s, INTERVAL 1 DAY)
+        """
+        return fetch_all(query, (start_date, end_date))
+    except Exception as e:
+        print("Error getting collections:", e)
+        return []

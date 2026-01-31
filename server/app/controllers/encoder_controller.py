@@ -10,12 +10,14 @@ from app.model.encoder.collections_db import (
     get_collection_db,
     put_collection_db,
     delete_collection_db,
+    get_data_base_date_collection_db
 )
 from app.model.encoder.disbursements_db import (
     insert_disbursement_db,
     get_disbursement_db,
     put_disbursement_db,
     delete_disbursement_db,
+    get_data_base_date_disbursement_db
 )
 
 from app.services.total_amount_calculation import (
@@ -247,5 +249,24 @@ def delete_collection_controller():
     except Exception as e:
         return jsonify({"message": str(e)}), 500
 
+def get_data_base_range_date_controller():
+    try:
+        ...
+        data = request.get_json()
+        start_date = data["start_date"]
+        end_date = data["end_date"]
+        data_name = data["data_name"]
+        print(data)
+        if data_name == "collection":
+            result = get_data_base_date_collection_db(start_date, end_date)
+            return jsonify({"message": "Successfully retrieved data", "data": result}), 200
+        elif data_name == "disbursement":
+            result = get_data_base_date_disbursement_db(start_date, end_date)
+            return jsonify({"message": "Successfully retrieved data", "data": result}), 200
+        else:
+            return jsonify({"message": "Invalid data name"}), 400
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+    
 
 #DFE PROJECT  
