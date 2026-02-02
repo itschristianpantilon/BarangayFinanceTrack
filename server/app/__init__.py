@@ -26,6 +26,8 @@ def create_app():
     from app.routes.encoder_routes import encoder_bp
     #CHECKER
     from app.routes.checker_routes import checker_bp
+    #APPROVER
+    from app.routes.approver_routes import approver_bp
     #====================================================================================
     #TEST
     app.register_blueprint(db_test_bp, url_prefix="/api")
@@ -39,5 +41,7 @@ def create_app():
     app.register_blueprint(encoder_bp, url_prefix="/api")
     #CHECKER
     app.register_blueprint(checker_bp, url_prefix="/api")
+    #APPROVER
+    app.register_blueprint(approver_bp, url_prefix="/api")
 
     return app
