@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "../components/ui/select";
 
+import { api, apiCall } from "../utils/api";
+
 export type BudgetEntry = {
   id: string;
   transactionId: string;
@@ -185,10 +187,19 @@ export function BudgetEntryForm({
   isPending,
   onCancel,
 }: BudgetEntryFormProps) {
-  const { data: transactionIdData } = useQuery<{ transactionId: string }>({
-    queryKey: ["/api/budget-entries/generate-id"],
-    enabled: mode === "create",
-  });
+const { data: transactionIdData } = useQuery<{ transactionId: string }>({
+  queryKey: ["budget-entries-generate-id"],
+  queryFn: async () => {
+    const { data, error } = await apiCall<{ transactionId: string }>(
+      api.budgetEntries.generateId
+    );
+    if (error) throw new Error(error);
+    // Normalize: backend may return transaction_id or transactionId
+    const id = data?.transactionId ?? (data as any)?.transaction_id;
+    return { transactionId: id };
+  },
+  enabled: mode === "create",
+});
 
   const form = useForm<InsertBudgetEntry>({
     resolver: zodResolver(insertBudgetEntrySchema),

@@ -180,30 +180,31 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
   }, [open, collection, form, isEditMode]);
 
   // Fetch new transaction ID when dialog opens (only for create mode)
-  useEffect(() => {
-    if (open && !isEditMode) {
-      setIdGenerationError(false);
-      apiCall<{ transactionId: string }>(api.collections.generateId)
-        .then((result) => {
-          if (result.error) {
-            throw new Error(result.error);
-          }
-          if (result.data?.transactionId) {
-            setTransactionId(result.data.transactionId);
-            form.setValue("transactionId", result.data.transactionId);
-          }
-        })
-        .catch((error) => {
-          setIdGenerationError(true);
-          toast({
-            variant: "destructive",
-            title: "Error Generating Transaction ID",
-            description:
-              "Unable to generate transaction ID. Please close and reopen the form.",
-          });
+useEffect(() => {
+  if (open && !isEditMode) {
+    setIdGenerationError(false);
+    apiCall<{ transactionId: string }>(api.collections.generateId)
+      .then((result) => {
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        const id = result.data?.transactionId ?? (result.data as any)?.transaction_id;
+        if (id) {
+          setTransactionId(id);
+          form.setValue("transactionId", id);
+        }
+      })
+      .catch((error) => {
+        setIdGenerationError(true);
+        toast({
+          variant: "destructive",
+          title: "Error Generating Transaction ID",
+          description:
+            "Unable to generate transaction ID. Please close and reopen the form.",
         });
-    }
-  }, [open, isEditMode, form, toast]);
+      });
+  }
+}, [open, isEditMode, form, toast]);
 
   const saveCollection = useMutation({
     mutationFn: async (data: InsertCollection) => {
