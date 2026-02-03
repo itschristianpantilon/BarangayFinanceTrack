@@ -38,7 +38,7 @@ import { useToast } from "../../hooks/use-toast";
 import { Flag, CheckCircle2 } from "lucide-react";
 import { apiRequest, queryClient } from "../../lib/queryClient";
 
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { ApproverLayout } from "../../components/approver-layout";
 
 type BaseTransaction = {
@@ -85,17 +85,34 @@ export default function ApproverSRE() {
     "approved",
   );
 
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
+
   // Fetch collections
   const { data: collections = [], isLoading: collectionsLoading } = useQuery<
     Collection[]
   >({
-    queryKey: ["/api/collections"],
+    queryKey: ["collections"],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/get-collection`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch collections");
+      }
+      return response.json();
+    },
   });
+
 
   // Fetch disbursements
   const { data: disbursements = [], isLoading: disbursementsLoading } =
     useQuery<Disbursement[]>({
-      queryKey: ["/api/disbursements"],
+      queryKey: ["disbursements"],
+      queryFn: async () => {
+        const response = await fetch(`${API_BASE_URL}/get-disbursement`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch disbursements");
+        }
+        return response.json();
+      },
     });
 
   // Review mutation
@@ -125,8 +142,8 @@ export default function ApproverSRE() {
       queryClient.invalidateQueries({
         queryKey:
           variables.type === "collection"
-            ? ["/api/collections"]
-            : ["/api/disbursements"],
+            ? ["collections"]
+            : ["disbursements"],
       });
       toast({
         title:
@@ -206,6 +223,27 @@ export default function ApproverSRE() {
   const formatCurrency = (amount: string) => {
     return `₱${parseFloat(amount).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
+
+const formatDate = (dateString: string) => {
+  if (!dateString) return "N/A";
+
+  try {
+    const parsedDate = parse(
+      dateString,
+      "EEE, dd MMM yyyy HH:mm:ss 'GMT'",
+      new Date()
+    );
+
+    if (isNaN(parsedDate.getTime())) {
+      return "Invalid Date";
+    }
+
+    return format(parsedDate, "MMM dd, yyyy");
+  } catch (error) {
+    console.error("Date formatting error:", error);
+    return "Invalid Date";
+  }
+};
 
   const totalCollections = collections.reduce(
     (sum, c) => sum + parseFloat(c.amount),
@@ -289,13 +327,10 @@ export default function ApproverSRE() {
                             data-testid={`row-collection-${collection.id}`}
                           >
                             <TableCell className="font-medium">
-                              {collection.transactionId}
+                              {collection.transaction_id}
                             </TableCell>
                             <TableCell>
-                              {format(
-                                new Date(collection.transactionDate),
-                                "MMM dd, yyyy",
-                              )}
+                              {formatDate(collection.transaction_date)}
                             </TableCell>
                             <TableCell className="max-w-xs truncate">
                               {collection.natureOfCollection}
@@ -411,10 +446,7 @@ export default function ApproverSRE() {
                               {disbursement.transactionId}
                             </TableCell>
                             <TableCell>
-                              {format(
-                                new Date(disbursement.transactionDate),
-                                "MMM dd, yyyy",
-                              )}
+                              {formatDate(disbursement.transactionDate)}
                             </TableCell>
                             <TableCell className="max-w-xs truncate">
                               {disbursement.natureOfDisbursement}

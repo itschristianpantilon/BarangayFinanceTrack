@@ -41,6 +41,8 @@ import { apiRequest, queryClient } from "../../lib/queryClient";
 import { format } from "date-fns";
 import { CheckerLayout } from "../../components/checker-layout";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
+
 type ReviewStatus = "pending" | "approved" | "flagged";
 
 type Collection = {
@@ -92,13 +94,27 @@ export default function CheckerSRE() {
   const { data: collections = [], isLoading: collectionsLoading } = useQuery<
     Collection[]
   >({
-    queryKey: ["/api/collections"],
+    queryKey: ["collections"],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/get-collection`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch collections");
+      }
+      return response.json();
+    },
   });
 
   // Fetch disbursements
   const { data: disbursements = [], isLoading: disbursementsLoading } =
     useQuery<Disbursement[]>({
-      queryKey: ["/api/disbursements"],
+      queryKey: ["disbursements"],
+      queryFn: async () => {
+        const response = await fetch(`${API_BASE_URL}/get-disbursement`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch disbursements");
+        }
+        return response.json();
+      },
     });
 
   // Flag mutation (checkers can only flag transactions)
@@ -126,8 +142,8 @@ export default function CheckerSRE() {
       queryClient.invalidateQueries({
         queryKey:
           variables.type === "collection"
-            ? ["/api/collections"]
-            : ["/api/disbursements"],
+            ? ["collections"]
+            : ["disbursements"],
       });
       toast({
         title: "Transaction Flagged",
@@ -198,6 +214,18 @@ export default function CheckerSRE() {
 
   const formatCurrency = (amount: string) => {
     return `₱${parseFloat(amount).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "Invalid Date";
+      }
+      return format(date, "MMM dd, yyyy");
+    } catch (error) {
+      return "Invalid Date";
+    }
   };
 
   const totalCollections = collections.reduce(
@@ -285,10 +313,7 @@ export default function CheckerSRE() {
                               {collection.transactionId}
                             </TableCell>
                             <TableCell>
-                              {format(
-                                new Date(collection.transactionDate),
-                                "MMM dd, yyyy",
-                              )}
+                              {formatDate(collection.transactionDate)}
                             </TableCell>
                             <TableCell className="max-w-xs truncate">
                               {collection.natureOfCollection}
@@ -382,10 +407,7 @@ export default function CheckerSRE() {
                               {disbursement.transactionId}
                             </TableCell>
                             <TableCell>
-                              {format(
-                                new Date(disbursement.transactionDate),
-                                "MMM dd, yyyy",
-                              )}
+                              {formatDate(disbursement.transactionDate)}
                             </TableCell>
                             <TableCell className="max-w-xs truncate">
                               {disbursement.natureOfDisbursement}

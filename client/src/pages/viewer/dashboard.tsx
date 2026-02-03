@@ -23,7 +23,27 @@ import {
 
 import { TrendingUp, TrendingDown } from "lucide-react";
 
-// Local types for static data
+// Import API configuration
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
+
+// Types
+export type Collection = {
+  id: string;
+  transactionDate: string;
+  category: string;
+  payor: string;
+  amount: string;
+  createdAt?: string;
+};
+
+export type Disbursement = {
+  id: string;
+  transactionDate: string;
+  category: string;
+  payee: string;
+  amount: string;
+  createdAt?: string;
+};
 
 export type DfurProject = {
   id: string;
@@ -44,58 +64,19 @@ export type DfurProject = {
   reviewComment?: string;
 };
 
-export type InsertDfurProject = {
-  transactionId: string;
-  transactionDate: Date;
-  natureOfCollection: string;
-  project: string;
-  location: string;
-  totalCostApproved: string;
-  totalCostIncurred: string;
-  dateStarted: Date;
-  targetCompletionDate: Date;
-  status: "Planned" | "In Progress" | "Completed" | "On Hold" | "Cancelled";
-  numberOfExtensions: number;
-  remarks?: string;
+export type CapitalOutlaySummary = {
+  totals: {
+    planned: number;
+    actual: number;
+    variance: number;
+  };
+  items: Array<{
+    label: string;
+    planned: number;
+    actual: number;
+    variance: number;
+  }>;
 };
-
-export const dfurProjectsStatic: DfurProject[] = [
-  {
-    id: "1",
-    transactionId: "TXN-001",
-    transactionDate: "2026-01-15",
-    natureOfCollection: "Infrastructure",
-    project: "Road Repair - Zone 1",
-    location: "Zone 1",
-    totalCostApproved: "500000",
-    totalCostIncurred: "450000",
-    dateStarted: "2026-01-10",
-    targetCompletionDate: "2026-02-15",
-    status: "In Progress",
-    numberOfExtensions: 0,
-    reviewStatus: "approved",
-    reviewedBy: "Committee A",
-    reviewComment: "Work on schedule"
-  },
-  {
-    id: "2",
-    transactionId: "TXN-002",
-    transactionDate: "2026-01-12",
-    natureOfCollection: "Health",
-    project: "Clinic Renovation",
-    location: "Zone 2",
-    totalCostApproved: "300000",
-    totalCostIncurred: "300000",
-    dateStarted: "2026-01-05",
-    targetCompletionDate: "2026-01-25",
-    status: "Completed",
-    numberOfExtensions: 1,
-    reviewStatus: "flagged",
-    reviewedBy: "Committee B",
-    reviewComment: "Exceeded budget"
-  }
-];
-
 
 const COLORS = {
   primary: "#059669",
@@ -105,14 +86,44 @@ const COLORS = {
   accent: "#a7f3d0",
 };
 
+// API fetch functions
+const fetchCollections = async (): Promise<Collection[]> => {
+  const response = await fetch(`${API_BASE_URL}/get-collection`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch collections');
+  }
+  const data = await response.json();
+  return data;
+};
+
+const fetchDisbursements = async (): Promise<Disbursement[]> => {
+  const response = await fetch(`${API_BASE_URL}/get-disbursement`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch disbursements');
+  }
+  const data = await response.json();
+  return data;
+};
+
+const fetchDfurProjects = async (): Promise<DfurProject[]> => {
+  const response = await fetch(`${API_BASE_URL}/get-dfur-project`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch DFUR projects');
+  }
+  const data = await response.json();
+  return data;
+};
+
 export default function ViewerDashboard() {
   const [activeTab, setActiveTab] = useState("abr");
   const currentYear = new Date().getFullYear();
 
+  // Fetch collections
   const { data: collections, isLoading: isLoadingCollections } = useQuery<Collection[]>({
-    queryKey: ["/api/collections"],
+    queryKey: ['collections'],
+    queryFn: fetchCollections,
     select: (data) => {
-      // Clone and sort by transaction date descending (using createdAt as fallback)
+      // Clone and sort by transaction date descending
       return [...data].sort((a, b) => {
         const dateA = a.transactionDate ? new Date(a.transactionDate).getTime() : 
                      (a.createdAt ? new Date(a.createdAt).getTime() : Date.now());
@@ -123,10 +134,12 @@ export default function ViewerDashboard() {
     },
   });
 
+  // Fetch disbursements
   const { data: disbursements, isLoading: isLoadingDisbursements } = useQuery<Disbursement[]>({
-    queryKey: ["/api/disbursements"],
+    queryKey: ['disbursements'],
+    queryFn: fetchDisbursements,
     select: (data) => {
-      // Clone and sort by transaction date descending (using createdAt as fallback)
+      // Clone and sort by transaction date descending
       return [...data].sort((a, b) => {
         const dateA = a.transactionDate ? new Date(a.transactionDate).getTime() : 
                      (a.createdAt ? new Date(a.createdAt).getTime() : Date.now());
@@ -137,9 +150,13 @@ export default function ViewerDashboard() {
     },
   });
 
-const dfurProjects = dfurProjectsStatic;
+  // Fetch DFUR projects
+  const { data: dfurProjects, isLoading: isLoadingDfurProjects } = useQuery<DfurProject[]>({
+    queryKey: ['dfurProjects'],
+    queryFn: fetchDfurProjects,
+  });
 
-
+  // ABR Capital Outlay Summary (keep existing implementation)
   const { data: capitalOutlaySummary } = useQuery<CapitalOutlaySummary>({
     queryKey: ["/api/abr/capital-outlay-summary", currentYear],
   });
@@ -199,7 +216,7 @@ const dfurProjects = dfurProjectsStatic;
   const totalIncurredCost = dfurProjects?.reduce((sum, p) => sum + safeParseAmount(p.totalCostIncurred), 0) || 0;
 
   const dfurByStatus = dfurProjects?.reduce((acc, p) => {
-    const status = p.status === "approved" ? "Approved" : p.status === "flagged" ? "Flagged" : "Pending";
+    const status = p.reviewStatus === "approved" ? "Approved" : p.reviewStatus === "flagged" ? "Flagged" : "Pending";
     acc[status] = (acc[status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -628,32 +645,42 @@ const dfurProjects = dfurProjectsStatic;
                 <CardDescription>Overview of project approval status</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={dfurStatusPieData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                      labelLine={{ stroke: '#94a3b8', strokeWidth: 1 }}
-                    >
-                      {dfurStatusPieData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={
-                            entry.name === "Approved" ? COLORS.primary : 
-                            entry.name === "Flagged" ? "#ef4444" : 
-                            "#94a3b8"
-                          } 
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                {isLoadingDfurProjects ? (
+                  <div className="flex items-center justify-center h-[300px]">
+                    <p className="text-muted-foreground">Loading project data...</p>
+                  </div>
+                ) : dfurStatusPieData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={dfurStatusPieData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                        labelLine={{ stroke: '#94a3b8', strokeWidth: 1 }}
+                      >
+                        {dfurStatusPieData.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={
+                              entry.name === "Approved" ? COLORS.primary : 
+                              entry.name === "Flagged" ? "#ef4444" : 
+                              "#94a3b8"
+                            } 
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px]">
+                    <p className="text-muted-foreground">No project data available</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -676,35 +703,49 @@ const dfurProjects = dfurProjectsStatic;
                       </tr>
                     </thead>
                     <tbody>
-                      {dfurProjects?.map((project, index) => (
-                        <tr key={project.id} className="border-b hover-elevate">
-                          <td className="py-2 px-3 font-medium max-w-xs truncate" title={project.project}>
-                            {project.project}
-                          </td>
-                          <td className="py-2 px-3 text-muted-foreground max-w-xs truncate" title={project.location}>
-                            {project.location}
-                          </td>
-                          <td className="text-right py-2 px-3">
-                            {formatCurrency(parseFloat(project.totalCostApproved as any))}
-                          </td>
-                          <td className="text-right py-2 px-3">
-                            {formatCurrency(parseFloat(project.totalCostIncurred as any))}
-                          </td>
-                          <td className="text-center py-2 px-3">
-                            <Badge 
-                              className={
-                                project.status === "approved" 
-                                  ? "bg-green-600 text-white" 
-                                  : project.status === "flagged"
-                                  ? "bg-red-600 text-white"
-                                  : "bg-gray-400 text-white"
-                              }
-                            >
-                              {project.status === "approved" ? "Approved" : project.status === "flagged" ? "Flagged" : "Pending"}
-                            </Badge>
+                      {isLoadingDfurProjects ? (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                            Loading projects...
                           </td>
                         </tr>
-                      ))}
+                      ) : dfurProjects && dfurProjects.length > 0 ? (
+                        dfurProjects.map((project, index) => (
+                          <tr key={project.id} className="border-b hover-elevate">
+                            <td className="py-2 px-3 font-medium max-w-xs truncate" title={project.project}>
+                              {project.project}
+                            </td>
+                            <td className="py-2 px-3 text-muted-foreground max-w-xs truncate" title={project.location}>
+                              {project.location}
+                            </td>
+                            <td className="text-right py-2 px-3">
+                              {formatCurrency(safeParseAmount(project.totalCostApproved))}
+                            </td>
+                            <td className="text-right py-2 px-3">
+                              {formatCurrency(safeParseAmount(project.totalCostIncurred))}
+                            </td>
+                            <td className="text-center py-2 px-3">
+                              <Badge 
+                                className={
+                                  project.reviewStatus === "approved" 
+                                    ? "bg-green-600 text-white" 
+                                    : project.reviewStatus === "flagged"
+                                    ? "bg-red-600 text-white"
+                                    : "bg-gray-400 text-white"
+                                }
+                              >
+                                {project.reviewStatus === "approved" ? "Approved" : project.reviewStatus === "flagged" ? "Flagged" : "Pending"}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                            No projects data available
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
