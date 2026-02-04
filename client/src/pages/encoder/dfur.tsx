@@ -71,7 +71,7 @@ export type DfurProject = {
   total_cost_approved: string;
   date_started: string;
   target_completion_date: string;
-  stats: "Planned" | "In Progress" | "Completed" | "On Hold" | "Cancelled";
+  status: "Planned" | "In Progress" | "Completed" | "On Hold" | "Cancelled";
   total_cost_incurred: string;
   no_extensions: number;
   remarks?: string;
@@ -87,7 +87,7 @@ export type InsertDfurProject = {
   total_cost_approved: number;
   date_started: string;
   target_completion_date: string;
-  stats: "Planned" | "In Progress" | "Completed" | "On Hold" | "Cancelled";
+  status: "Planned" | "In Progress" | "Completed" | "On Hold" | "Cancelled";
   total_cost_incurred: number;
   no_extensions: number;
   remarks?: string;
@@ -102,7 +102,13 @@ const insertDfurProjectSchema = z.object({
   total_cost_approved: z.number().min(0, "Invalid amount"),
   date_started: z.string(),
   target_completion_date: z.string(),
-  stats: z.enum(["Planned", "In Progress", "Completed", "On Hold", "Cancelled"]),
+  status: z.enum([
+    "Planned",
+    "In Progress",
+    "Completed",
+    "On Hold",
+    "Cancelled",
+  ]),
   total_cost_incurred: z.number().min(0, "Invalid amount"),
   no_extensions: z.number().min(0),
   remarks: z.string().optional(),
@@ -145,7 +151,9 @@ const getStatusColor = (status: string) => {
 
 export default function DFUR() {
   const [open, setOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<DfurProject | null>(null);
+  const [editingProject, setEditingProject] = useState<DfurProject | null>(
+    null,
+  );
   const [deleteProject, setDeleteProject] = useState<DfurProject | null>(null);
   const { toast } = useToast();
 
@@ -170,7 +178,9 @@ export default function DFUR() {
         // Fallback to generating ID on frontend if endpoint doesn't exist
         const year = new Date().getFullYear();
         const count = projects.length + 1;
-        return { transaction_id: `DFUR-${year}-${String(count).padStart(3, "0")}` };
+        return {
+          transaction_id: `DFUR-${year}-${String(count).padStart(3, "0")}`,
+        };
       }
       return response.json();
     },
@@ -188,7 +198,7 @@ export default function DFUR() {
       total_cost_approved: 0,
       date_started: format(new Date(), "yyyy-MM-dd"),
       target_completion_date: format(new Date(), "yyyy-MM-dd"),
-      stats: "Planned",
+      status: "Planned",
       total_cost_incurred: 0,
       no_extensions: 0,
       remarks: "",
@@ -205,14 +215,23 @@ export default function DFUR() {
     if (editingProject) {
       form.reset({
         transaction_id: editingProject.transaction_id,
-        transaction_date: format(new Date(editingProject.transaction_date), "yyyy-MM-dd"),
+        transaction_date: format(
+          new Date(editingProject.transaction_date),
+          "yyyy-MM-dd",
+        ),
         name_of_collection: editingProject.name_of_collection,
         project: editingProject.project,
         location: editingProject.location,
         total_cost_approved: parseFloat(editingProject.total_cost_approved),
-        date_started: format(new Date(editingProject.date_started), "yyyy-MM-dd"),
-        target_completion_date: format(new Date(editingProject.target_completion_date), "yyyy-MM-dd"),
-        stats: editingProject.stats,
+        date_started: format(
+          new Date(editingProject.date_started),
+          "yyyy-MM-dd",
+        ),
+        target_completion_date: format(
+          new Date(editingProject.target_completion_date),
+          "yyyy-MM-dd",
+        ),
+        status: editingProject.status,
         total_cost_incurred: parseFloat(editingProject.total_cost_incurred),
         no_extensions: editingProject.no_extensions,
         remarks: editingProject.remarks || "",
@@ -227,7 +246,7 @@ export default function DFUR() {
         total_cost_approved: 0,
         date_started: format(new Date(), "yyyy-MM-dd"),
         target_completion_date: format(new Date(), "yyyy-MM-dd"),
-        stats: "Planned",
+        status: "Planned",
         total_cost_incurred: 0,
         no_extensions: 0,
         remarks: "",
@@ -259,7 +278,8 @@ export default function DFUR() {
       toast({
         variant: "destructive",
         title: "Error Adding Project",
-        description: error.message || "Failed to add DFUR project. Please try again.",
+        description:
+          error.message || "Failed to add DFUR project. Please try again.",
       });
     },
   });
@@ -290,7 +310,8 @@ export default function DFUR() {
       toast({
         variant: "destructive",
         title: "Error Updating Project",
-        description: error.message || "Failed to update project. Please try again.",
+        description:
+          error.message || "Failed to update project. Please try again.",
       });
     },
   });
@@ -316,7 +337,8 @@ export default function DFUR() {
       toast({
         variant: "destructive",
         title: "Error Deleting Project",
-        description: error.message || "Failed to delete project. Please try again.",
+        description:
+          error.message || "Failed to delete project. Please try again.",
       });
     },
   });
@@ -355,11 +377,18 @@ export default function DFUR() {
   };
 
   const totalApproved =
-    projects?.reduce((sum: number, p: DfurProject) => sum + parseFloat(p.total_cost_approved), 0) || 0;
+    projects?.reduce(
+      (sum: number, p: DfurProject) => sum + parseFloat(p.total_cost_approved),
+      0,
+    ) || 0;
   const totalIncurred =
-    projects?.reduce((sum: number, p: DfurProject) => sum + parseFloat(p.total_cost_incurred), 0) || 0;
+    projects?.reduce(
+      (sum: number, p: DfurProject) => sum + parseFloat(p.total_cost_incurred),
+      0,
+    ) || 0;
   const activeProjects =
-    projects?.filter((p: DfurProject) => p.stats === "In Progress").length || 0;
+    projects?.filter((p: DfurProject) => p.status === "In Progress").length ||
+    0;
 
   return (
     <EncoderLayout>
@@ -435,8 +464,13 @@ export default function DFUR() {
                     name="name_of_collection"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nature of Collection - ECONOMIC SERVICES</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormLabel>
+                          Nature of Collection - ECONOMIC SERVICES
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger data-testid="select-nature-of-collection">
                               <SelectValue placeholder="Select category" />
@@ -504,7 +538,9 @@ export default function DFUR() {
                               step="0.01"
                               placeholder="0.00"
                               {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              onChange={(e) =>
+                                field.onChange(parseFloat(e.target.value) || 0)
+                              }
                               value={field.value}
                               data-testid="input-total-cost-approved"
                             />
@@ -525,7 +561,9 @@ export default function DFUR() {
                               step="0.01"
                               placeholder="0.00"
                               {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              onChange={(e) =>
+                                field.onChange(parseFloat(e.target.value) || 0)
+                              }
                               value={field.value}
                               data-testid="input-total-cost-incurred"
                             />
@@ -576,11 +614,14 @@ export default function DFUR() {
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="stats"
+                      name="status"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Status</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-status">
                                 <SelectValue placeholder="Select status" />
@@ -611,7 +652,9 @@ export default function DFUR() {
                               step="1"
                               placeholder="0"
                               {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                field.onChange(parseInt(e.target.value) || 0)
+                              }
                               value={field.value}
                               data-testid="input-extensions"
                             />
@@ -653,7 +696,9 @@ export default function DFUR() {
                     </Button>
                     <Button
                       type="submit"
-                      disabled={createProject.isPending || updateProject.isPending}
+                      disabled={
+                        createProject.isPending || updateProject.isPending
+                      }
                       data-testid="button-submit"
                     >
                       {createProject.isPending || updateProject.isPending
@@ -730,7 +775,10 @@ export default function DFUR() {
             {isLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-12 bg-muted rounded animate-pulse"
+                  />
                 ))}
               </div>
             ) : (
@@ -742,8 +790,12 @@ export default function DFUR() {
                       <TableHead>Project</TableHead>
                       <TableHead>Nature</TableHead>
                       <TableHead>Location</TableHead>
-                      <TableHead className="text-right">Approved Cost</TableHead>
-                      <TableHead className="text-right">Incurred Cost</TableHead>
+                      <TableHead className="text-right">
+                        Approved Cost
+                      </TableHead>
+                      <TableHead className="text-right">
+                        Incurred Cost
+                      </TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-center">Extensions</TableHead>
                       <TableHead className="text-center">Actions</TableHead>
@@ -785,10 +837,10 @@ export default function DFUR() {
                           </TableCell>
                           <TableCell>
                             <Badge
-                              className={getStatusColor(project.stats)}
+                              className={getStatusColor(project.status)}
                               variant="outline"
                             >
-                              {project.stats}
+                              {project.status}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-center">
@@ -833,8 +885,8 @@ export default function DFUR() {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete DFUR Project?</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete project "{deleteProject?.project}"?
-                This action cannot be undone.
+                Are you sure you want to delete project "
+                {deleteProject?.project}"? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -843,7 +895,8 @@ export default function DFUR() {
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={() =>
-                  deleteProject && deleteProjectMutation.mutate(deleteProject.id)
+                  deleteProject &&
+                  deleteProjectMutation.mutate(deleteProject.id)
                 }
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 data-testid="button-confirm-delete"
