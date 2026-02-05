@@ -14,7 +14,7 @@ def insert_dfur_db(data):
                 total_cost_incurred,
                 date_started,
                 target_completion_date,
-                stats,
+                status,
                 no_extensions,
                 remarks
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -29,7 +29,7 @@ def insert_dfur_db(data):
             data['total_cost_incurred'],
             data['date_started'],
             data['target_completion_date'],
-            data['stats'],
+            data['status'],
             data['no_extensions'],
             data['remarks']
         )
@@ -64,7 +64,7 @@ def put_dfur_db(data):
                total_cost_incurred = %s,
                date_started = %s,
                target_completion_date = %s,
-               stats = %s,
+               status = %s,
                no_extensions = %s,
                remarks = %s,
                is_active = %s
@@ -80,7 +80,7 @@ def put_dfur_db(data):
            data['total_cost_incurred'],
            data['date_started'],
            data['target_completion_date'],
-           data['stats'],
+           data['status'],
            data['no_extensions'],
            data['remarks'],
            data['is_active'],

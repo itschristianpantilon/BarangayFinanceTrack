@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Download, Calendar } from "lucide-react";
-import { Button } from "../components/ui/button";
+import { Button } from "../../components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
+} from "../../components/ui/card";
 import {
   Table,
   TableBody,
@@ -16,9 +16,9 @@ import {
   TableHeader,
   TableRow,
   TableFooter,
-} from "../components/ui/table";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+} from "../../components/ui/table";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 type Revenue = {
   id: string;
   date: string;

@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, jsonify, request
 from app.controllers.encoder_controller import (
     insert_budget_entries_controller,
     get_budget_entries_controller,
@@ -17,6 +17,8 @@ from app.controllers.encoder_controller import (
     get_dfur_controller,
     put_dfur_controller,
     delete_dfur_controller,
+    generate_transaction_id_controller,
+    generate_11_digit_number_controller
 )
 
 encoder_bp = Blueprint('encoder_bp', __name__)
@@ -222,3 +224,34 @@ def delete_dfur_project():
     # }
     return delete_dfur_controller()
 
+# generator
+@encoder_bp.route('/budget-entries/generate_id', methods=['GET'])
+def get_budget_entries_generator():
+    data = {}
+    data['transaction_id'] = generate_transaction_id_controller('BUDG', 'budget_entries')
+    data['div_number'] = generate_11_digit_number_controller()
+    return jsonify(data), 200
+
+@encoder_bp.route('/collection/generate_id', methods=['GET'])
+def get_collection_generator():
+    ...
+    data = {}
+    data['transaction_id'] = generate_transaction_id_controller('COLL', 'collection')
+    data['div_number'] = generate_11_digit_number_controller()
+    return jsonify(data), 200
+
+@encoder_bp.route('/disbursement/generate_id', methods=['GET'])
+def get_disbursement_generator():
+    ...
+    data = {}
+    data['transaction_id'] = generate_transaction_id_controller('DISB', 'disbursement')
+    data['div_number'] = generate_11_digit_number_controller()
+    return jsonify(data), 200
+
+@encoder_bp.route('/dfur/generate_id', methods=['GET'])
+def get_dfur_generator():
+    ...
+    data = {}
+    data['transaction_id'] = generate_transaction_id_controller('DFUR', 'dfur')
+    data['div_number'] = generate_11_digit_number_controller()
+    return jsonify(data), 200

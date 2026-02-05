@@ -13,12 +13,12 @@ import { AuthProvider } from "./contexts/auth-context";
 
 import Login from "./pages/login";
 import RoleSelection from "./pages/role-selection";
-import Dashboard from "./pages/dashboard";
-import Revenues from "./pages/revenues";
-import Expenses from "./pages/expenses";
-import ReceiptsExpenditures from "./pages/receipts-expenditures";
-import FundOperations from "./pages/fund-operations";
-import Reports from "./pages/reports";
+import Dashboard from "./pages/reports/dashboard";
+import Revenues from "./pages/reports/revenues";
+import Expenses from "./pages/reports/expenses";
+import ReceiptsExpenditures from "./pages/reports/receipts-expenditures";
+import FundOperations from "./pages/reports/fund-operations";
+import Reports from "./pages/reports/reports";
 
 import EncoderDashboard from "./pages/encoder/encoder-dashboard";
 import ABO from "./pages/encoder/abo";
@@ -50,7 +50,13 @@ function AppRoutes() {
   return (
     <Switch>
       {/* Public */}
+
+      <Route path="/" component={ViewerDashboard} />
+
       <Route path="/login" component={Login} />
+
+      <Route path="/role-selection" component={RoleSelection} />
+
 
       {/* General */}
       <Route path="/dashboard" component={Dashboard} />
@@ -99,7 +105,8 @@ function MainApp() {
   const [location] = useLocation();
 
   const isLoginPage = location === "/login";
-  const isRoleSelectionPage = location === "/";
+  const isRoleSelectionPage = location === "/role-selection";
+
 
   const isRoleBasedPage =
     location.startsWith("/encoder") ||
@@ -131,7 +138,7 @@ function MainApp() {
         {/* <header className="flex items-center justify-end p-4 border-b border-border bg-background sticky top-0 z-50">
           <ThemeToggle />
         </header> */}
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-auto ">
           <AppRoutes />
         </main>
       </div>
@@ -142,13 +149,7 @@ function MainApp() {
   return (
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex h-screen w-full">
-        <AppSidebar />
         <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex items-center justify-between p-4 border-b border-border bg-background sticky top-0 z-50">
-            <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <ThemeToggle />
-          </header>
-          <HeroBanner />
           <main className="flex-1 overflow-auto">
             <AppRoutes />
           </main>

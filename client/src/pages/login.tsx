@@ -33,6 +33,9 @@ import { api, apiCall } from "../utils/api";
 
 import logoPath from "../assets/san_agustin.jpg";
 
+import { useAuth } from "../contexts/auth-context";
+
+
 /* -------------------- */
 /* Validation Schema */
 /* -------------------- */
@@ -57,6 +60,8 @@ export default function Login() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { login } = useAuth();
+
 
   /* -------------------- */
   /* React Hook Form */
@@ -109,11 +114,12 @@ export default function Login() {
       // Login successful
       const { user } = data;
 
-      // Store authentication data
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userId", user.id.toString());
-      localStorage.setItem("username", user.username);
-      localStorage.setItem("role", user.role);
+  
+      login({
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      });
 
       // Get redirect path based on role
       const redirectPath = roleRoutes[user.role.toLowerCase()] || "/admin/users";

@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, TrendingDown, DollarSign, Wallet } from "lucide-react";
-import { StatCard } from "../components/stat-card";
+import { StatCard } from "../../components/stat-card";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
+} from "../../components/ui/card";
 import {
   BarChart,
   Bar,

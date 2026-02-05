@@ -42,6 +42,7 @@ import { api, apiCall } from "../utils/api";
 type BackendDisbursement = {
   id?: number;
   created_by: number;
+  allocation_id: number;
   transaction_id: string;
   transaction_date: string;
   nature_of_disbursement: string;
@@ -83,10 +84,12 @@ interface DisbursementFormProps {
 function frontendToBackend(
   frontendData: InsertDisbursement,
   createdBy: number,
-  disbursementId?: string
+  disbursementId?: string,
+  allocationId: number = 1
 ): BackendDisbursement {
   const backendData: BackendDisbursement = {
     created_by: createdBy,
+    allocation_id: allocationId,
     transaction_id: frontendData.transactionId,
     transaction_date: frontendData.transactionDate,
     nature_of_disbursement: frontendData.natureOfDisbursement,
@@ -152,6 +155,15 @@ export function DisbursementForm({
         },
   });
 
+  const toDateInputValue = (dateString?: string) => {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  return date.toISOString().split("T")[0]; // yyyy-MM-dd
+};
+
   // Reset form when dialog closes or disbursement prop changes
   useEffect(() => {
     if (!open) {
@@ -173,7 +185,7 @@ export function DisbursementForm({
     } else if (disbursement) {
       form.reset({
         transactionId: disbursement.transactionId,
-        transactionDate: disbursement.transactionDate,
+        transactionDate: toDateInputValue(disbursement.transactionDate),
         natureOfDisbursement: disbursement.natureOfDisbursement,
         category: disbursement.category,
         subcategory: disbursement.subcategory,
@@ -196,9 +208,10 @@ export function DisbursementForm({
           if (result.error) {
             throw new Error(result.error);
           }
-          if (result.data?.transactionId) {
-            setTransactionId(result.data.transactionId);
-            form.setValue("transactionId", result.data.transactionId);
+          const id = result.data?.transactionId ?? (result.data as any)?.transaction_id;
+          if (id) {
+            setTransactionId(id);
+            form.setValue("transactionId", id);
           }
         })
         .catch((error) => {

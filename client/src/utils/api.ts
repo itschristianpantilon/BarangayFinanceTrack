@@ -16,26 +16,29 @@ export const api = {
     create: `${API_BASE_URL}/post-budget-entries`,
     update: `${API_BASE_URL}/put-budget-entries`,
     delete: `${API_BASE_URL}/delete-budget-entries`,
+    generateId: `${API_BASE_URL}/budget-entries/generate_id`,
   },
   collections: {
     getAll: `${API_BASE_URL}/get-collection`,
     create: `${API_BASE_URL}/insert-collection`,
     update: `${API_BASE_URL}/put-collection`,
     delete: `${API_BASE_URL}/delete-collection`,
-    generateId: `${API_BASE_URL}/collections/generate-id`,
+    generateId: `${API_BASE_URL}/collection/generate_id`,
   },
   disbursements: {
     getAll: `${API_BASE_URL}/get-disbursement`,
     create: `${API_BASE_URL}/insert-disbursement`,
     update: `${API_BASE_URL}/put-disbursement`,
     delete: `${API_BASE_URL}/delete-disbursement`,
-    generateId: `${API_BASE_URL}/disbursements/generate-id`,
+    generateId: `${API_BASE_URL}/disbursement/generate_id`,
   },
   dfurProject: {
     create: `${API_BASE_URL}/insert-dfur-project`,
     getAll: `${API_BASE_URL}/get-dfur-project`,
     update: `${API_BASE_URL}/update-dfur-project`,
     delete: `${API_BASE_URL}/delete-dfur-project`,
+    generateId: `${API_BASE_URL}/dfur/generate_id`,
+    getTotalData: `${API_BASE_URL}/get-total-data-dfur-project`,
   }
 
 };

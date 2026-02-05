@@ -25,6 +25,8 @@ from app.model.encoder.dfur_db import(
     put_dfur_db,
     delete_dfur_db
 ) 
+from datetime import datetime
+import random
 # CRUD ==================================================
 # BUDGET ENTRIES
 def insert_budget_entries_controller():
@@ -250,7 +252,18 @@ def get_data_base_range_date_controller():
 #DFE PROJECT  
 def insert_dfur_controller():
     try:
-        data = request.get_json()
+        data = request.get_json();
+        if data['status'] == 'Planned':
+            data['status'] = 'planned'
+        elif data['status'] == 'Completed':
+            data['status'] = 'completed'
+        elif data['status'] == 'On Hold':
+            data['status'] = 'on_hold'
+        elif data['status'] == 'Cancelled':
+            data['status'] = 'cancelled'
+        elif data['status'] == 'In Progress':
+            data['status'] = 'in_progress'
+        
         result = insert_dfur_db(data)
         if result:
             return jsonify({"message": "Successfully inserted data"}), 200
@@ -263,6 +276,7 @@ def put_dfur_controller():
     try:
         data = request.get_json()
         result = put_dfur_db(data)
+        
         if result:
             return jsonify({"message": "Successfully updated data"}), 200
         else:
@@ -292,3 +306,21 @@ def delete_dfur_controller():
     except Exception as e:
         return jsonify({"message": str(e)}), 500
     
+
+def generate_transaction_id_controller(prefix, data_type):
+    counter = 1
+    if data_type == 'collection':
+        counter = len(get_collection_db())
+    elif data_type == 'budget-entries':
+        counter = len(get_budget_entries_db)   
+    elif data_type == 'disbursement':
+        counter = len(get_disbursement_db())
+    elif data_type == 'dfur':
+        counter = len(get_all_dfur_db())
+    counter += 1
+    
+    year = datetime.now().year
+    return f"{prefix}-{year}-{counter:03d}"
+
+def generate_11_digit_number_controller():
+    return random.randint(10_000_000_000, 99_999_999_999)

@@ -13,7 +13,6 @@ const roles = [
   { id: "checker", title: "Checker", description: "Validation and verification of encoded financial data.", icon: CheckCircle, borderColor: "border-amber-500", iconBg: "bg-amber-50", iconColor: "text-amber-600" },
   { id: "approver", title: "Approver", description: "Final authorization of pending financial documents.", icon: UserCheck, borderColor: "border-purple-500", iconBg: "bg-purple-50", iconColor: "text-purple-600" },
   { id: "reviewer", title: "Reviewer", description: "Comprehensive auditing and performance reviews.", icon: ClipboardCheck, borderColor: "border-rose-500", iconBg: "bg-rose-50", iconColor: "text-rose-600" },
-  { id: "viewer", title: "Viewer", description: "Read-only access to reports and financial analytics.", icon: Eye, borderColor: "border-slate-500", iconBg: "bg-slate-50", iconColor: "text-slate-600" },
 ];
 
 export default function RoleSelection() {
