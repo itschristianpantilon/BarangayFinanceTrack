@@ -48,41 +48,55 @@ import { useLocation } from "wouter";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
 
 // Types
-export type Collection = {
-  id: string;
-  transactionDate: string;
+type Collection = {
+  id: number;
+  transaction_date: string | null;
   category: string;
   payor: string;
   amount: string;
-  createdAt?: string;
+  created_at?: string;
 };
 
-export type Disbursement = {
-  id: string;
-  transactionDate: string;
+type CollectionsApiResponse = {
+  data: Collection[];
+  message: string;
+};
+
+type Disbursement = {
+  id: number;
+  transaction_date: string | null;
   category: string;
   payee: string;
   amount: string;
-  createdAt?: string;
+  created_at?: string;
 };
 
-export type DfurProject = {
-  id: string;
-  transactionId: string;
-  transactionDate: string;
-  natureOfCollection: string;
+type DisbursementsApiResponse = {
+  data: Disbursement[];
+  message: string;
+};
+
+type DfurProject = {
+  id: number;
+  transaction_id: string;
+  transaction_date: string | null;
+  name_of_collection: string;
   project: string;
   location: string;
-  totalCostApproved: string;
-  totalCostIncurred: string;
-  dateStarted: string;
-  targetCompletionDate: string;
-  status: "Planned" | "In Progress" | "Completed" | "On Hold" | "Cancelled";
-  numberOfExtensions: number;
+  total_cost_approved: string;
+  total_cost_incurred: string;
+  date_started: string | null;
+  target_completion_date: string | null;
+  status: string;
+  no_extensions: number;
   remarks?: string;
-  reviewStatus?: "pending" | "approved" | "flagged";
-  reviewedBy?: string;
-  reviewComment?: string;
+  review_status?: "pending" | "approved" | "flagged";
+  review_comment?: string;
+};
+
+type DfurApiResponse = {
+  data: DfurProject[];
+  message: string;
 };
 
 export type CapitalOutlaySummary = {
@@ -122,22 +136,22 @@ const COLORS = {
 const fetchCollections = async (): Promise<Collection[]> => {
   const response = await fetch(`${API_BASE_URL}/get-collection`);
   if (!response.ok) throw new Error('Failed to fetch collections');
-  const data = await response.json();
-  return data;
+  const data: CollectionsApiResponse = await response.json();
+  return data.data || [];
 };
 
 const fetchDisbursements = async (): Promise<Disbursement[]> => {
   const response = await fetch(`${API_BASE_URL}/get-disbursement`);
   if (!response.ok) throw new Error('Failed to fetch disbursements');
-  const data = await response.json();
-  return data;
+  const data: DisbursementsApiResponse = await response.json();
+  return data.data || [];
 };
 
 const fetchDfurProjects = async (): Promise<DfurProject[]> => {
   const response = await fetch(`${API_BASE_URL}/get-dfur-project`);
   if (!response.ok) throw new Error('Failed to fetch DFUR projects');
-  const data = await response.json();
-  return Array.isArray(data) ? data : [];
+  const data: DfurApiResponse = await response.json();
+  return data.data || [];
 };
 
 export default function ViewerDashboard() {
@@ -158,10 +172,10 @@ export default function ViewerDashboard() {
     queryFn: fetchCollections,
     select: (data) => {
       return [...data].sort((a, b) => {
-        const dateA = a.transactionDate ? new Date(a.transactionDate).getTime() : 
-                     (a.createdAt ? new Date(a.createdAt).getTime() : Date.now());
-        const dateB = b.transactionDate ? new Date(b.transactionDate).getTime() : 
-                     (b.createdAt ? new Date(b.createdAt).getTime() : Date.now());
+        const dateA = a.transaction_date ? new Date(a.transaction_date).getTime() : 
+                     (a.created_at ? new Date(a.created_at).getTime() : Date.now());
+        const dateB = b.transaction_date ? new Date(b.transaction_date).getTime() : 
+                     (b.created_at ? new Date(b.created_at).getTime() : Date.now());
         return dateB - dateA;
       });
     },
@@ -172,10 +186,10 @@ export default function ViewerDashboard() {
     queryFn: fetchDisbursements,
     select: (data) => {
       return [...data].sort((a, b) => {
-        const dateA = a.transactionDate ? new Date(a.transactionDate).getTime() : 
-                     (a.createdAt ? new Date(a.createdAt).getTime() : Date.now());
-        const dateB = b.transactionDate ? new Date(b.transactionDate).getTime() : 
-                     (b.createdAt ? new Date(b.createdAt).getTime() : Date.now());
+        const dateA = a.transaction_date ? new Date(a.transaction_date).getTime() : 
+                     (a.created_at ? new Date(a.created_at).getTime() : Date.now());
+        const dateB = b.transaction_date ? new Date(b.transaction_date).getTime() : 
+                     (b.created_at ? new Date(b.created_at).getTime() : Date.now());
         return dateB - dateA;
       });
     },
@@ -204,6 +218,24 @@ export default function ViewerDashboard() {
     if (!amount) return 0;
     const num = Number(amount);
     return isNaN(num) ? 0 : num;
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A";
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "N/A";
+      }
+      return date.toLocaleDateString('en-PH', { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return "N/A";
+    }
   };
 
   // Handle comment submission
@@ -246,8 +278,8 @@ export default function ViewerDashboard() {
   const totalCollections = collections?.reduce((sum, c) => sum + safeParseAmount(c.amount), 0) || 0;
   const totalDisbursements = disbursements?.reduce((sum, d) => sum + safeParseAmount(d.amount), 0) || 0;
   const surplus = totalCollections - totalDisbursements;
-  const totalApprovedCost = (dfurProjects || []).reduce((sum, p) => sum + safeParseAmount(p.totalCostApproved), 0);
-  const totalIncurredCost = (dfurProjects || []).reduce((sum, p) => sum + safeParseAmount(p.totalCostIncurred), 0);
+  const totalApprovedCost = (dfurProjects || []).reduce((sum, p) => sum + safeParseAmount(p.total_cost_approved), 0);
+  const totalIncurredCost = (dfurProjects || []).reduce((sum, p) => sum + safeParseAmount(p.total_cost_incurred), 0);
 
   const collectionsBySource = collections?.reduce((acc, c) => {
     const source = c.category || "Other";
@@ -272,7 +304,7 @@ export default function ViewerDashboard() {
   })).slice(0, 5);
 
   const dfurByStatus = (dfurProjects || []).reduce((acc, p) => {
-    const status = p.reviewStatus === "approved" ? "Approved" : p.reviewStatus === "flagged" ? "Flagged" : "Pending";
+    const status = p.review_status === "approved" ? "Approved" : p.review_status === "flagged" ? "Flagged" : "Pending";
     acc[status] = (acc[status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -856,14 +888,10 @@ export default function ViewerDashboard() {
                           </td>
                         </tr>
                       ) : collections && collections.length > 0 ? (
-                        collections.slice(0, 10).map((collection, index) => (
+                        collections.slice(0, 10).map((collection) => (
                           <tr key={collection.id} className="border-b border-slate-100 hover:bg-emerald-50/50 transition-all duration-200">
                             <td className="py-4 px-6 text-slate-600 whitespace-nowrap font-medium">
-                              {new Date(collection.transactionDate).toLocaleDateString('en-PH', { 
-                                month: 'short', 
-                                day: 'numeric',
-                                year: 'numeric'
-                              })}
+                              {formatDate(collection.transaction_date)}
                             </td>
                             <td className="py-4 px-6 font-semibold text-slate-900 max-w-xs truncate" title={collection.category}>
                               {collection.category}
@@ -920,14 +948,10 @@ export default function ViewerDashboard() {
                           </td>
                         </tr>
                       ) : disbursements && disbursements.length > 0 ? (
-                        disbursements.slice(0, 10).map((disbursement, index) => (
+                        disbursements.slice(0, 10).map((disbursement) => (
                           <tr key={disbursement.id} className="border-b border-slate-100 hover:bg-amber-50/50 transition-all duration-200">
                             <td className="py-4 px-6 text-slate-600 whitespace-nowrap font-medium">
-                              {new Date(disbursement.transactionDate).toLocaleDateString('en-PH', { 
-                                month: 'short', 
-                                day: 'numeric',
-                                year: 'numeric'
-                              })}
+                              {formatDate(disbursement.transaction_date)}
                             </td>
                             <td className="py-4 px-6 font-semibold text-slate-900 max-w-xs truncate" title={disbursement.category}>
                               {disbursement.category}
@@ -1084,7 +1108,7 @@ export default function ViewerDashboard() {
               </div>
               <div className="space-y-4 max-h-[320px] overflow-y-auto custom-scrollbar pr-2">
                 {dfurProjects && dfurProjects.length > 0 ? (
-                  dfurProjects.slice(0, 5).map((project, index) => (
+                  dfurProjects.slice(0, 5).map((project) => (
                     <div key={project.id} className="p-4 bg-gradient-to-br from-slate-50 to-white rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex-1 min-w-0">
@@ -1097,21 +1121,21 @@ export default function ViewerDashboard() {
                           </p>
                         </div>
                         <Badge className={`shrink-0 ${
-                          project.reviewStatus === "approved" 
+                          project.review_status === "approved" 
                             ? "bg-emerald-100 text-emerald-700 border-emerald-200" 
-                            : project.reviewStatus === "flagged"
+                            : project.review_status === "flagged"
                             ? "bg-red-100 text-red-700 border-red-200"
                             : "bg-slate-100 text-slate-700 border-slate-200"
                         }`}>
-                          {project.reviewStatus === "approved" ? "Approved" : project.reviewStatus === "flagged" ? "Flagged" : "Pending"}
+                          {project.review_status === "approved" ? "Approved" : project.review_status === "flagged" ? "Flagged" : "Pending"}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-blue-600">
-                          {formatCurrencyCompact(safeParseAmount(project.totalCostApproved))}
+                          {formatCurrencyCompact(safeParseAmount(project.total_cost_approved))}
                         </span>
                         <span className="text-xs text-slate-500">
-                          {new Date(project.transactionDate).toLocaleDateString('en-PH', { month: 'short', year: 'numeric' })}
+                          {formatDate(project.transaction_date)}
                         </span>
                       </div>
                     </div>
@@ -1160,7 +1184,7 @@ export default function ViewerDashboard() {
                       </td>
                     </tr>
                   ) : dfurProjects && dfurProjects.length > 0 ? (
-                    dfurProjects.map((project, index) => (
+                    dfurProjects.map((project) => (
                       <tr key={project.id} className="border-b border-slate-100 hover:bg-violet-50/30 transition-all duration-200">
                         <td className="py-4 px-6 font-semibold text-slate-900 max-w-xs truncate" title={project.project}>
                           {project.project}
@@ -1169,20 +1193,20 @@ export default function ViewerDashboard() {
                           {project.location}
                         </td>
                         <td className="text-right py-4 px-6 font-bold text-slate-900">
-                          {formatCurrency(safeParseAmount(project.totalCostApproved))}
+                          {formatCurrency(safeParseAmount(project.total_cost_approved))}
                         </td>
                         <td className="text-right py-4 px-6 font-bold text-amber-600">
-                          {formatCurrency(safeParseAmount(project.totalCostIncurred))}
+                          {formatCurrency(safeParseAmount(project.total_cost_incurred))}
                         </td>
                         <td className="text-center py-4 px-6">
                           <Badge className={`${
-                            project.reviewStatus === "approved" 
+                            project.review_status === "approved" 
                               ? "bg-emerald-100 text-emerald-700 border-emerald-200" 
-                              : project.reviewStatus === "flagged"
+                              : project.review_status === "flagged"
                               ? "bg-red-100 text-red-700 border-red-200"
                               : "bg-slate-100 text-slate-700 border-slate-200"
                           }`}>
-                            {project.reviewStatus === "approved" ? "Approved" : project.reviewStatus === "flagged" ? "Flagged" : "Pending"}
+                            {project.review_status === "approved" ? "Approved" : project.review_status === "flagged" ? "Flagged" : "Pending"}
                           </Badge>
                         </td>
                       </tr>

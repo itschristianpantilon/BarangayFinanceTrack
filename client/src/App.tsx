@@ -4,12 +4,9 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
-import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
-// import { AppSidebar } from "./components/app-sidebar";
-// import { ThemeProvider } from "./components/theme-provider";
-// import { ThemeToggle } from "./components/theme-toggle";
-// import { HeroBanner } from "./components/hero-banner";
+import { SidebarProvider } from "./components/ui/sidebar";
 import { AuthProvider } from "./contexts/auth-context";
+import { ProtectedRoute } from "./components/protected-route";
 
 import Login from "./pages/login";
 import RoleSelection from "./pages/role-selection";
@@ -49,49 +46,143 @@ import "./App.css";
 function AppRoutes() {
   return (
     <Switch>
-      {/* Public */}
-
-      <Route path="/" component={ViewerDashboard} />
-
+      {/* Public Routes */}
       <Route path="/login" component={Login} />
-
       <Route path="/role-selection" component={RoleSelection} />
 
+      {/* Root - redirect to viewer dashboard (public) */}
+      <Route path="/" component={ViewerDashboard} />
 
-      {/* General */}
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/revenues" component={Revenues} />
-      <Route path="/expenses" component={Expenses} />
-      <Route path="/receipts-expenditures" component={ReceiptsExpenditures} />
-      <Route path="/fund-operations" component={FundOperations} />
-      <Route path="/reports" component={Reports} />
+      {/* General Reports - Protected, accessible by multiple roles */}
+      <Route path="/dashboard">
+        <ProtectedRoute allowedRoles={["superadmin", "admin", "encoder", "checker", "approver", "reviewer"]}>
+          <Dashboard />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/revenues">
+        <ProtectedRoute allowedRoles={["superadmin", "admin", "encoder", "checker", "approver", "reviewer"]}>
+          <Revenues />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/expenses">
+        <ProtectedRoute allowedRoles={["superadmin", "admin", "encoder", "checker", "approver", "reviewer"]}>
+          <Expenses />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/receipts-expenditures">
+        <ProtectedRoute allowedRoles={["superadmin", "admin", "encoder", "checker", "approver", "reviewer"]}>
+          <ReceiptsExpenditures />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/fund-operations">
+        <ProtectedRoute allowedRoles={["superadmin", "admin", "encoder", "checker", "approver", "reviewer"]}>
+          <FundOperations />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/reports">
+        <ProtectedRoute allowedRoles={["superadmin", "admin", "encoder", "checker", "approver", "reviewer"]}>
+          <Reports />
+        </ProtectedRoute>
+      </Route>
 
-      {/* Encoder */}
-      <Route path="/encoder/dashboard" component={EncoderDashboard} />
-      <Route path="/encoder/abo" component={ABO} />
-      <Route path="/encoder/sre" component={SRE} />
-      <Route path="/encoder/dfur" component={DFUR} />
+      {/* Encoder Routes */}
+      <Route path="/encoder/dashboard">
+        <ProtectedRoute allowedRoles={["encoder"]}>
+          <EncoderDashboard />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/encoder/abo">
+        <ProtectedRoute allowedRoles={["encoder"]}>
+          <ABO />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/encoder/sre">
+        <ProtectedRoute allowedRoles={["encoder"]}>
+          <SRE />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/encoder/dfur">
+        <ProtectedRoute allowedRoles={["encoder"]}>
+          <DFUR />
+        </ProtectedRoute>
+      </Route>
 
-      {/* Checker */}
-      <Route path="/checker/dashboard" component={CheckerDashboard} />
-      <Route path="/checker/sre" component={CheckerSRE} />
-      <Route path="/checker/dfur" component={CheckerDFUR} />
+      {/* Checker Routes */}
+      <Route path="/checker/dashboard">
+        <ProtectedRoute allowedRoles={["checker"]}>
+          <CheckerDashboard />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/checker/sre">
+        <ProtectedRoute allowedRoles={["checker"]}>
+          <CheckerSRE />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/checker/dfur">
+        <ProtectedRoute allowedRoles={["checker"]}>
+          <CheckerDFUR />
+        </ProtectedRoute>
+      </Route>
 
-      {/* Approver */}
-      <Route path="/approver/dashboard" component={ApproverDashboard} />
-      <Route path="/approver/sre" component={ApproverSRE} />
-      <Route path="/approver/dfur" component={ApproverDFUR} />
+      {/* Approver Routes */}
+      <Route path="/approver/dashboard">
+        <ProtectedRoute allowedRoles={["approver"]}>
+          <ApproverDashboard />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/approver/sre">
+        <ProtectedRoute allowedRoles={["approver"]}>
+          <ApproverSRE />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/approver/dfur">
+        <ProtectedRoute allowedRoles={["approver"]}>
+          <ApproverDFUR />
+        </ProtectedRoute>
+      </Route>
 
-      {/* Reviewer */}
-      <Route path="/reviewer/dashboard" component={ReviewerDashboard} />
-      <Route path="/reviewer/dfur" component={ReviewerDFUR} />
+      {/* Reviewer Routes */}
+      <Route path="/reviewer/dashboard">
+        <ProtectedRoute allowedRoles={["reviewer"]}>
+          <ReviewerDashboard />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/reviewer/dfur">
+        <ProtectedRoute allowedRoles={["reviewer"]}>
+          <ReviewerDFUR />
+        </ProtectedRoute>
+      </Route>
 
-      {/* Viewer */}
-      <Route path="/viewer/dashboard" component={ViewerDashboard} />
+      {/* Viewer Routes */}
+      <Route path="/viewer/dashboard">
+        <ViewerDashboard />
+      </Route>
 
-      {/* Admin */}
-      <Route path="/admin/users" component={UserManagement} />
-      <Route path="/admin/activity-log" component={ActivityLog} />
+      {/* Admin Routes */}
+      <Route path="/admin/users">
+        <ProtectedRoute allowedRoles={["superadmin", "admin"]}>
+          <UserManagement />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/admin/activity-log">
+        <ProtectedRoute allowedRoles={["superadmin", "admin"]}>
+          <ActivityLog />
+        </ProtectedRoute>
+      </Route>
 
       {/* 404 */}
       <Route component={NotFound} />
@@ -106,7 +197,6 @@ function MainApp() {
 
   const isLoginPage = location === "/login";
   const isRoleSelectionPage = location === "/role-selection";
-
 
   const isRoleBasedPage =
     location.startsWith("/encoder") ||
@@ -128,17 +218,14 @@ function MainApp() {
 
   // Role selection
   if (isRoleSelectionPage) {
-    return <RoleSelection />;
+    return <AppRoutes />;
   }
 
   // Role-based layout
   if (isRoleBasedPage) {
     return (
       <div className="flex flex-col h-screen w-full">
-        {/* <header className="flex items-center justify-end p-4 border-b border-border bg-background sticky top-0 z-50">
-          <ThemeToggle />
-        </header> */}
-        <main className="flex-1 overflow-auto ">
+        <main className="flex-1 overflow-auto">
           <AppRoutes />
         </main>
       </div>
@@ -165,14 +252,12 @@ function App() {
   return (
     <WouterRouter>
       <QueryClientProvider client={queryClient}>
-
-          <AuthProvider>
-            <TooltipProvider>
-              <MainApp />
-              <Toaster />
-            </TooltipProvider>
-          </AuthProvider>
-
+        <AuthProvider>
+          <TooltipProvider>
+            <MainApp />
+            <Toaster />
+          </TooltipProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </WouterRouter>
   );

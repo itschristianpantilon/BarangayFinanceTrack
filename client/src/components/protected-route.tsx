@@ -25,6 +25,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
           checker: "/checker/dashboard",
           reviewer: "/reviewer/dashboard",
           approver: "/approver/dashboard",
+          viewer: "/viewer/dashboard",
         };
         const redirectPath = roleRoutes[user.role] || "/login";
         setLocation(redirectPath);

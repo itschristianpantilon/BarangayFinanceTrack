@@ -1,5 +1,6 @@
-import { useState, type KeyboardEvent } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "../contexts/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { 
   FileEdit, CheckCircle, UserCheck, ClipboardCheck, Eye, Shield, MapPin 
@@ -8,22 +9,87 @@ import logoPath from "../assets/san_agustin.jpg";
 import barangayHallPath from "../assets/backgroundImage.jpg";
 
 const roles = [
-  { id: "admin", title: "Admin", description: "System governance, user management, and full audit logs.", icon: Shield, borderColor: "border-blue-500", iconBg: "bg-blue-50", iconColor: "text-blue-600" },
-  { id: "encoder", title: "Encoder", description: "Entry and management of daily financial transactions.", icon: FileEdit, borderColor: "border-emerald-500", iconBg: "bg-emerald-50", iconColor: "text-emerald-600" },
-  { id: "checker", title: "Checker", description: "Validation and verification of encoded financial data.", icon: CheckCircle, borderColor: "border-amber-500", iconBg: "bg-amber-50", iconColor: "text-amber-600" },
-  { id: "approver", title: "Approver", description: "Final authorization of pending financial documents.", icon: UserCheck, borderColor: "border-purple-500", iconBg: "bg-purple-50", iconColor: "text-purple-600" },
-  { id: "reviewer", title: "Reviewer", description: "Comprehensive auditing and performance reviews.", icon: ClipboardCheck, borderColor: "border-rose-500", iconBg: "bg-rose-50", iconColor: "text-rose-600" },
+  { 
+    id: "admin", 
+    title: "Admin", 
+    description: "System governance, user management, and full audit logs.", 
+    icon: Shield, 
+    borderColor: "border-blue-500", 
+    iconBg: "bg-blue-50", 
+    iconColor: "text-blue-600",
+    route: "/admin/users"
+  },
+  { 
+    id: "encoder", 
+    title: "Encoder", 
+    description: "Entry and management of daily financial transactions.", 
+    icon: FileEdit, 
+    borderColor: "border-emerald-500", 
+    iconBg: "bg-emerald-50", 
+    iconColor: "text-emerald-600",
+    route: "/encoder/dashboard"
+  },
+  { 
+    id: "checker", 
+    title: "Checker", 
+    description: "Validation and verification of encoded financial data.", 
+    icon: CheckCircle, 
+    borderColor: "border-amber-500", 
+    iconBg: "bg-amber-50", 
+    iconColor: "text-amber-600",
+    route: "/checker/dashboard"
+  },
+  { 
+    id: "approver", 
+    title: "Approver", 
+    description: "Final authorization of pending financial documents.", 
+    icon: UserCheck, 
+    borderColor: "border-purple-500", 
+    iconBg: "bg-purple-50", 
+    iconColor: "text-purple-600",
+    route: "/approver/dashboard"
+  },
+  { 
+    id: "reviewer", 
+    title: "Reviewer", 
+    description: "Comprehensive auditing and performance reviews.", 
+    icon: ClipboardCheck, 
+    borderColor: "border-rose-500", 
+    iconBg: "bg-rose-50", 
+    iconColor: "text-rose-600",
+    route: "/reviewer/dashboard"
+  },
+  { 
+    id: "viewer", 
+    title: "Viewer", 
+    description: "View-only access to public financial reports and data.", 
+    icon: Eye, 
+    borderColor: "border-slate-500", 
+    iconBg: "bg-slate-50", 
+    iconColor: "text-slate-600",
+    route: "/viewer/dashboard"
+  },
 ];
 
 export default function RoleSelection() {
   const [, setLocation] = useLocation();
+  const { user, login } = useAuth();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
   const handleRoleSelect = (roleId: string) => {
     setSelectedRole(roleId);
-    localStorage.setItem("userRole", roleId);
+    
+    // Store the selected role in localStorage for the login page to use
+    localStorage.setItem("selectedRole", roleId);
+    
     setTimeout(() => {
-      setLocation(roleId === "admin" ? "/login" : `/${roleId}/dashboard`);
+      // Viewer role doesn't require authentication
+      if (roleId === "viewer") {
+        setLocation("/viewer/dashboard");
+      } else {
+        // All other roles (admin, encoder, checker, approver, reviewer) require login
+        setLocation("/login");
+      }
     }, 300);
   };
 

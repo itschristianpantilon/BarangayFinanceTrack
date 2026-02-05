@@ -32,6 +32,7 @@ import { DisbursementForm } from "../../components/disbursement-form";
 import { queryClient } from "../../lib/queryClient";
 import { useToast } from "../../hooks/use-toast";
 import { api, apiCall } from "../../utils/api";
+import { exportSREToPDF } from "../../utils/exportSREToPDF";
 
 // Backend types
 type BackendCollection = {
@@ -139,6 +140,7 @@ export default function SRE() {
   const [activeView, setActiveView] = useState<ViewType>('collection');
   const [deleteCollectionId, setDeleteCollectionId] = useState<string | null>(null);
   const [deleteDisbursementId, setDeleteDisbursementId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
   // Fetch collections
@@ -263,7 +265,37 @@ export default function SRE() {
   };
 
   const handleExport = () => {
-    alert("Export functionality would generate a formatted SRE report here");
+    try {
+      setIsExporting(true);
+      
+      // Prepare data for export
+      const exportData = {
+        startDate,
+        endDate,
+        collections: filteredCollections,
+        disbursements: filteredDisbursements,
+        totalReceipts,
+        totalExpenditures,
+        netBalance,
+      };
+
+      // Generate and download PDF client-side
+      exportSREToPDF(exportData);
+
+      toast({
+        title: "Export Successful",
+        description: "SRE report has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast({
+        variant: "destructive",
+        title: "Export Failed",
+        description: "Failed to export SRE report. Please try again.",
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -277,9 +309,14 @@ export default function SRE() {
             </h1>
             <p className="text-muted-foreground mt-1">View and encode financial statements for the selected period</p>
           </div>
-          <Button className="gap-2" onClick={handleExport} data-testid="button-export">
+          <Button 
+            className="gap-2" 
+            onClick={handleExport} 
+            disabled={isExporting}
+            data-testid="button-export"
+          >
             <Download className="h-4 w-4" />
-            Export SRE
+            {isExporting ? "Exporting..." : "Export SRE"}
           </Button>
         </div>
 

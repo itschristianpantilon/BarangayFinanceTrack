@@ -8,6 +8,8 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
   login: (user: User) => void;
   logout: () => void;
 };
@@ -16,13 +18,20 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 🔥 hydrate user on refresh
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("Failed to parse user from localStorage", error);
+        localStorage.removeItem("user");
+      }
     }
+    setIsLoading(false);
   }, []);
 
   const login = (user: User) => {
@@ -36,7 +45,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        isLoading, 
+        isAuthenticated: !!user,
+        login, 
+        logout 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -43,6 +43,8 @@
     "drizzle-zod": "^0.8.3",
     "embla-carousel-react": "^9.0.0-rc01",
     "input-otp": "^1.4.2",
+    "jspdf": "^4.1.0",
+    "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-day-picker": "^9.13.0",
