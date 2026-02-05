@@ -192,18 +192,34 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
 useEffect(() => {
   if (open && !isEditMode) {
     setIdGenerationError(false);
-    apiCall<{ transactionId: string }>(api.collections.generateId)
+
+    apiCall<{
+      transaction_id?: string;
+      transactionId?: string;
+      div_number?: number;
+    }>(api.collections.generateId)
       .then((result) => {
         if (result.error) {
           throw new Error(result.error);
         }
-        const id = result.data?.transactionId ?? (result.data as any)?.transaction_id;
-        if (id) {
-          setTransactionId(id);
-          form.setValue("transactionId", id);
+
+        const data = result.data as any;
+
+        const transactionId =
+          data?.transaction_id ?? data?.transactionId;
+
+        const divNumber = data?.div_number;
+
+        if (transactionId) {
+          setTransactionId(transactionId);
+          form.setValue("transactionId", transactionId);
+        }
+
+        if (divNumber) {
+          form.setValue("orNumber", String(divNumber));
         }
       })
-      .catch((error) => {
+      .catch(() => {
         setIdGenerationError(true);
         toast({
           variant: "destructive",
@@ -214,6 +230,7 @@ useEffect(() => {
       });
   }
 }, [open, isEditMode, form, toast]);
+
 
   const saveCollection = useMutation({
     mutationFn: async (data: InsertCollection) => {
@@ -557,8 +574,11 @@ useEffect(() => {
                     <Input
                       placeholder="e.g., 13502301"
                       {...field}
+                      readOnly={!isEditMode}
+                      className={!isEditMode ? "bg-muted" : ""}
                       data-testid="input-or-number"
                     />
+
                   </FormControl>
                   <FormMessage />
                 </FormItem>

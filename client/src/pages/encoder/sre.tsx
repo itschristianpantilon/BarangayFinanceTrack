@@ -60,7 +60,7 @@ type BackendDisbursement = {
   fund_source: string;
   amount: number;
   payee: string;
-  dv_number: string;
+  or_number: string
   remarks?: string;
 };
 
@@ -122,7 +122,7 @@ function backendDisbursementToFrontend(backend: BackendDisbursement): Disburseme
     transactionDate: backend.transaction_date,
     natureOfDisbursement: backend.nature_of_disbursement,
     payee: backend.payee,
-    dvNumber: backend.dv_number,
+    dvNumber: backend.or_number,
     amount: backend.amount.toString(),
     category: backend.category,
     subcategory: backend.subcategory,

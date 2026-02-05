@@ -157,14 +157,7 @@
     z-index: -1;
   }
   
-  .dark body::before {
-    background: linear-gradient(
-      135deg,
-      rgba(0, 0, 0, 0.85) 0%,
-      rgba(0, 0, 0, 0.82) 50%,
-      rgba(0, 0, 0, 0.85) 100%
-    );
-  }
+
 }
 
 @layer utilities {

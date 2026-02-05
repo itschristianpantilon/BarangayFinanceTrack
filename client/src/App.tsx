@@ -5,10 +5,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
-import { AppSidebar } from "./components/app-sidebar";
-import { ThemeProvider } from "./components/theme-provider";
-import { ThemeToggle } from "./components/theme-toggle";
-import { HeroBanner } from "./components/hero-banner";
+// import { AppSidebar } from "./components/app-sidebar";
+// import { ThemeProvider } from "./components/theme-provider";
+// import { ThemeToggle } from "./components/theme-toggle";
+// import { HeroBanner } from "./components/hero-banner";
 import { AuthProvider } from "./contexts/auth-context";
 
 import Login from "./pages/login";
@@ -165,14 +165,14 @@ function App() {
   return (
     <WouterRouter>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="light">
+
           <AuthProvider>
             <TooltipProvider>
               <MainApp />
               <Toaster />
             </TooltipProvider>
           </AuthProvider>
-        </ThemeProvider>
+
       </QueryClientProvider>
     </WouterRouter>
   );

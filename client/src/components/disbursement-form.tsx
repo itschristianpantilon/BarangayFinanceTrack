@@ -52,7 +52,7 @@ type BackendDisbursement = {
   fund_source: string;
   amount: number;
   payee: string;
-  dv_number: string;
+  or_number: string;
   remarks?: string;
 };
 
@@ -99,7 +99,7 @@ function frontendToBackend(
     fund_source: frontendData.fundSource,
     amount: parseFloat(frontendData.amount),
     payee: frontendData.payee,
-    dv_number: frontendData.dvNumber,
+    or_number: frontendData.dvNumber, // ✅ CORRECT
     remarks: frontendData.remarks || "",
   };
 
@@ -109,6 +109,7 @@ function frontendToBackend(
 
   return backendData;
 }
+
 
 export function DisbursementForm({
   disbursement,
@@ -200,31 +201,48 @@ export function DisbursementForm({
   }, [open, disbursement, form, isEditMode]);
 
   // Fetch new transaction ID when dialog opens (only for create mode)
-  useEffect(() => {
-    if (open && !isEditMode) {
-      setIdGenerationError(false);
-      apiCall<{ transactionId: string }>(api.disbursements.generateId)
-        .then((result) => {
-          if (result.error) {
-            throw new Error(result.error);
-          }
-          const id = result.data?.transactionId ?? (result.data as any)?.transaction_id;
-          if (id) {
-            setTransactionId(id);
-            form.setValue("transactionId", id);
-          }
-        })
-        .catch((error) => {
-          setIdGenerationError(true);
-          toast({
-            variant: "destructive",
-            title: "Error Generating Transaction ID",
-            description:
-              "Unable to generate transaction ID. Please close and reopen the form.",
-          });
+useEffect(() => {
+  if (open && !isEditMode) {
+    setIdGenerationError(false);
+
+    apiCall<{
+      transaction_id?: string;
+      transactionId?: string;
+      div_number?: string | number;
+    }>(api.disbursements.generateId)
+      .then((result) => {
+        if (result.error) {
+          throw new Error(result.error);
+        }
+
+        const data = result.data as any;
+
+        const transactionId =
+          data?.transaction_id ?? data?.transactionId;
+
+        const dvNumber = data?.div_number;
+
+        if (transactionId) {
+          setTransactionId(transactionId);
+          form.setValue("transactionId", transactionId);
+        }
+
+        if (dvNumber) {
+          form.setValue("dvNumber", String(dvNumber));
+        }
+      })
+      .catch(() => {
+        setIdGenerationError(true);
+        toast({
+          variant: "destructive",
+          title: "Error Generating Transaction ID",
+          description:
+            "Unable to generate transaction ID. Please close and reopen the form.",
         });
-    }
-  }, [open, isEditMode, form, toast]);
+      });
+  }
+}, [open, isEditMode, form, toast]);
+
 
   const saveDisbursement = useMutation({
     mutationFn: async (data: InsertDisbursement) => {
@@ -685,8 +703,11 @@ export function DisbursementForm({
                     <Input
                       placeholder="e.g., 2025-001"
                       {...field}
+                      readOnly={!isEditMode}
+                      className={!isEditMode ? "bg-muted" : ""}
                       data-testid="input-dv-number"
                     />
+
                   </FormControl>
                   <FormMessage />
                 </FormItem>

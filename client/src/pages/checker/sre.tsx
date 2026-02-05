@@ -36,10 +36,11 @@ import { Textarea } from "../../components/ui/textarea";
 import { Label } from "../../components/ui/label";
 import { useToast } from "../../hooks/use-toast";
 import { Flag } from "lucide-react";
-import { apiRequest, queryClient } from "../../lib/queryClient";
+import { queryClient } from "../../lib/queryClient";
 
 import { format } from "date-fns";
 import { CheckerLayout } from "../../components/checker-layout";
+import { useAuth } from "@/contexts/auth-context";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
 
@@ -48,38 +49,39 @@ type ReviewStatus = "pending" | "approved" | "flagged";
 type Collection = {
   id: string;
 
-  transactionId: string;
-  transactionDate: string;
+  transaction_id: string;
+  transaction_date: string | null;
 
-  natureOfCollection: string;
+  nature_of_collection: string;
   payor: string;
-  orNumber: string;
+  or_number: string;
 
   amount: string;
 
-  reviewStatus: ReviewStatus;
-  reviewComment?: string;
+  review_status: ReviewStatus;
+  review_comment?: string;
 };
 
 type Disbursement = {
   id: string;
 
-  transactionId: string;
-  transactionDate: string;
+  transaction_id: string;
+  transaction_date: string | null;
 
-  natureOfDisbursement: string;
+  nature_of_disbursement: string;
   payee: string;
-  dvNumber: string;
+  or_number: string;
 
   amount: string;
 
-  reviewStatus: ReviewStatus;
-  reviewComment?: string;
+  review_status: ReviewStatus;
+  review_comment?: string;
 };
 
 
 export default function CheckerSRE() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"collections" | "disbursements">(
     "collections",
   );
@@ -117,7 +119,7 @@ export default function CheckerSRE() {
       },
     });
 
-  // Flag mutation (checkers can only flag transactions)
+  // Flag mutation using the backend API
   const reviewMutation = useMutation({
     mutationFn: async ({
       id,
@@ -128,15 +130,42 @@ export default function CheckerSRE() {
       type: "collection" | "disbursement";
       comment: string;
     }) => {
-      const endpoint =
+      // Get user ID from localStorage or auth context
+      // For now, using a placeholder - replace with actual user ID from your auth
+      const reviewedBy = user?.id.toString() || "0";
+
+
+      const payload =
         type === "collection"
-          ? `/api/collections/${id}/review`
-          : `/api/disbursements/${id}/review`;
-      return apiRequest("PATCH", endpoint, {
-        status: "flagged",
-        comment,
-        reviewedBy: "Checker",
+          ? {
+              collection_id: parseInt(id),
+              reviewed_by: parseInt(reviewedBy),
+              comment: comment,
+              flag_type: "collection",
+            }
+          : {
+              disbursement_id: parseInt(id),
+              reviewed_by: parseInt(reviewedBy),
+              comment: comment,
+              flag_type: "disbursement",
+            };
+
+      const response = await fetch(`${API_BASE_URL}/put-flag-comment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || "Failed to flag transaction. Please try again.",
+        );
+      }
+
+      return response.json();
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -159,17 +188,19 @@ export default function CheckerSRE() {
         variant: "destructive",
         title: "Review Failed",
         description:
-          error.message || "Failed to review transaction. Please try again.",
+          error.message || "Failed to flag transaction. Please try again.",
       });
     },
   });
+
+  
 
   const handleReviewClick = (
     transaction: Collection | Disbursement,
     type: "collection" | "disbursement",
   ) => {
     setSelectedTransaction({ ...transaction, type });
-    setReviewComment(transaction.reviewComment || "");
+    setReviewComment(transaction.review_comment || "");
     setReviewDialogOpen(true);
   };
 
@@ -216,15 +247,17 @@ export default function CheckerSRE() {
     return `₱${parseFloat(amount).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A";
+    
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
-        return "Invalid Date";
+        return "N/A";
       }
       return format(date, "MMM dd, yyyy");
     } catch (error) {
-      return "Invalid Date";
+      return "N/A";
     }
   };
 
@@ -303,28 +336,28 @@ export default function CheckerSRE() {
                           <TableRow
                             key={collection.id}
                             className={
-                              collection.reviewStatus === "flagged"
+                              collection.review_status === "flagged"
                                 ? "bg-red-50"
                                 : ""
                             }
                             data-testid={`row-collection-${collection.id}`}
                           >
                             <TableCell className="font-medium">
-                              {collection.transactionId}
+                              {collection.transaction_id}
                             </TableCell>
                             <TableCell>
-                              {formatDate(collection.transactionDate)}
+                              {formatDate(collection.transaction_date)}
                             </TableCell>
                             <TableCell className="max-w-xs truncate">
-                              {collection.natureOfCollection}
+                              {collection.nature_of_collection}
                             </TableCell>
                             <TableCell>{collection.payor}</TableCell>
-                            <TableCell>{collection.orNumber}</TableCell>
+                            <TableCell>{collection.or_number}</TableCell>
                             <TableCell className="text-right font-medium">
                               {formatCurrency(collection.amount)}
                             </TableCell>
                             <TableCell className="text-center">
-                              {getStatusBadge(collection.reviewStatus)}
+                              {getStatusBadge(collection.review_status)}
                             </TableCell>
                             <TableCell className="text-center">
                               <Button
@@ -339,11 +372,11 @@ export default function CheckerSRE() {
                                 <Flag className="h-4 w-4 mr-1" />
                                 Flag
                               </Button>
-                              {collection.reviewComment && (
+                              {/* {collection.review_comment && (
                                 <div className="mt-2 text-xs text-muted-foreground italic">
-                                  Comment: {collection.reviewComment}
+                                  Comment: {collection.review_comment}
                                 </div>
-                              )}
+                              )} */}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -386,7 +419,7 @@ export default function CheckerSRE() {
                           <TableHead>Date</TableHead>
                           <TableHead>Nature</TableHead>
                           <TableHead>Payee</TableHead>
-                          <TableHead>DV Number</TableHead>
+                          <TableHead>OR Number</TableHead>
                           <TableHead className="text-right">Amount</TableHead>
                           <TableHead className="text-center">Status</TableHead>
                           <TableHead className="text-center">Actions</TableHead>
@@ -397,28 +430,28 @@ export default function CheckerSRE() {
                           <TableRow
                             key={disbursement.id}
                             className={
-                              disbursement.reviewStatus === "flagged"
+                              disbursement.review_status === "flagged"
                                 ? "bg-red-50"
                                 : ""
                             }
                             data-testid={`row-disbursement-${disbursement.id}`}
                           >
                             <TableCell className="font-medium">
-                              {disbursement.transactionId}
+                              {disbursement.transaction_id}
                             </TableCell>
                             <TableCell>
-                              {formatDate(disbursement.transactionDate)}
+                              {formatDate(disbursement.transaction_date)}
                             </TableCell>
                             <TableCell className="max-w-xs truncate">
-                              {disbursement.natureOfDisbursement}
+                              {disbursement.nature_of_disbursement}
                             </TableCell>
                             <TableCell>{disbursement.payee}</TableCell>
-                            <TableCell>{disbursement.dvNumber}</TableCell>
+                            <TableCell>{disbursement.or_number || "N/A"}</TableCell>
                             <TableCell className="text-right font-medium">
                               {formatCurrency(disbursement.amount)}
                             </TableCell>
                             <TableCell className="text-center">
-                              {getStatusBadge(disbursement.reviewStatus)}
+                              {getStatusBadge(disbursement.review_status)}
                             </TableCell>
                             <TableCell className="text-center">
                               <Button
@@ -436,11 +469,11 @@ export default function CheckerSRE() {
                                 <Flag className="h-4 w-4 mr-1" />
                                 Flag
                               </Button>
-                              {disbursement.reviewComment && (
+                              {/* {disbursement.review_comment && (
                                 <div className="mt-2 text-xs text-muted-foreground italic">
-                                  Comment: {disbursement.reviewComment}
+                                  Comment: {disbursement.review_comment}
                                 </div>
-                              )}
+                              )} */}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -484,7 +517,7 @@ export default function CheckerSRE() {
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Transaction ID:</span>
                   <span className="text-sm">
-                    {selectedTransaction.transactionId}
+                    {selectedTransaction.transaction_id}
                   </span>
                 </div>
                 <div className="flex justify-between">
