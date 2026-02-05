@@ -39,6 +39,7 @@ import {
   Target,
   Wallet,
   PieChart as PieChartIcon,
+  MessageSquare,
 } from "lucide-react";
 
 import { useLocation } from "wouter";
@@ -145,6 +146,12 @@ export default function ViewerDashboard() {
 
   const [, navigate] = useLocation();
 
+  // Comment form state
+  const [commentName, setCommentName] = useState("");
+  const [commentEmail, setCommentEmail] = useState("");
+  const [commentText, setCommentText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Fetch data
   const { data: collections, isLoading: isLoadingCollections } = useQuery<Collection[]>({
     queryKey: ['collections'],
@@ -197,6 +204,42 @@ export default function ViewerDashboard() {
     if (!amount) return 0;
     const num = Number(amount);
     return isNaN(num) ? 0 : num;
+  };
+
+  // Handle comment submission
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!commentText.trim()) {
+      alert("Please enter a comment");
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    // Simulate API call - replace with actual API endpoint
+    try {
+      // await fetch(`${API_BASE_URL}/submit-comment`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     name: commentName,
+      //     email: commentEmail,
+      //     comment: commentText,
+      //     contextType: 'landing-page',
+      //   }),
+      // });
+      
+      // For now, just show success message
+      alert("Thank you for your feedback! Your comment has been submitted for review.");
+      setCommentName("");
+      setCommentEmail("");
+      setCommentText("");
+    } catch (error) {
+      alert("Failed to submit comment. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Calculations
@@ -1234,6 +1277,167 @@ export default function ViewerDashboard() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </section>
+
+        {/* Community Feedback Section */}
+        <section>
+          <div className="flex items-center gap-4 mb-10">
+            <div className="w-2 h-12 bg-gradient-to-b from-amber-500 to-amber-600 rounded-full shadow-lg" />
+            <div>
+              <h2 className="text-4xl font-bold text-slate-900">Community Feedback</h2>
+              <p className="text-slate-600 mt-1">Your voice matters - share your thoughts and suggestions</p>
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Comment Form */}
+            <div className="glass-card rounded-3xl p-8 shadow-xl border border-amber-200">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-4 bg-amber-100 rounded-2xl">
+                  <MessageSquare className="w-7 h-7 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900">Submit Your Feedback</h3>
+                  <p className="text-sm text-slate-600">Help us improve our transparency and services</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleCommentSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Your Name <span className="text-slate-400 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={commentName}
+                    onChange={(e) => setCommentName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 
+                             focus:ring-4 focus:ring-amber-100 transition-all duration-200 outline-none
+                             text-slate-900 placeholder:text-slate-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Email <span className="text-slate-400 font-normal">(Optional, for follow-up)</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={commentEmail}
+                    onChange={(e) => setCommentEmail(e.target.value)}
+                    placeholder="your.email@example.com"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 
+                             focus:ring-4 focus:ring-amber-100 transition-all duration-200 outline-none
+                             text-slate-900 placeholder:text-slate-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Your Comment <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    rows={5}
+                    required
+                    placeholder="Share your thoughts, questions, or suggestions about our financial transparency..."
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 
+                             focus:ring-4 focus:ring-amber-100 transition-all duration-200 outline-none
+                             text-slate-900 placeholder:text-slate-400 resize-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 
+                           text-white font-bold text-lg hover:from-amber-600 hover:to-amber-700 
+                           transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5
+                           flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" />
+                      Submit Feedback
+                    </>
+                  )}
+                </button>
+
+                <p className="text-xs text-slate-500 text-center leading-relaxed">
+                  All comments are reviewed by our admin team. Contact information is kept confidential.
+                </p>
+              </form>
+            </div>
+
+            {/* Info Cards */}
+            <div className="space-y-6">
+              <div className="glass-card rounded-3xl p-8 shadow-xl border border-blue-200">
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="p-3 bg-blue-100 rounded-xl shrink-0">
+                    <Users className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-slate-900 mb-2">Why Your Feedback Matters</h4>
+                    <p className="text-slate-600 leading-relaxed">
+                      Your comments help us understand community needs and improve our transparency initiatives. 
+                      Every piece of feedback is carefully reviewed and considered in our decision-making process.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-3xl p-8 shadow-xl border border-emerald-200">
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="p-3 bg-emerald-100 rounded-xl shrink-0">
+                    <Shield className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-slate-900 mb-2">Our Commitment</h4>
+                    <ul className="space-y-2 text-slate-600">
+                      <li className="flex items-start gap-2">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2"></span>
+                        <span>All comments reviewed within 3-5 business days</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2"></span>
+                        <span>Respectful and constructive feedback encouraged</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2"></span>
+                        <span>Anonymous submissions welcome</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2"></span>
+                        <span>Privacy and confidentiality guaranteed</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-3xl p-8 shadow-xl border border-violet-200">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-violet-100 rounded-xl shrink-0">
+                    <Clock className="w-6 h-6 text-violet-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-slate-900 mb-2">Response Time</h4>
+                    <p className="text-slate-600 leading-relaxed">
+                      We strive to acknowledge all feedback promptly. Complex inquiries may require additional 
+                      time for thorough investigation and response.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

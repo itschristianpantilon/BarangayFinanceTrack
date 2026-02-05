@@ -32,52 +32,66 @@ import {
 import { Textarea } from "../../components/ui/textarea";
 import { Badge } from "../../components/ui/badge";
 
-import { queryClient, apiRequest } from "../../lib/queryClient";
+import { queryClient } from "../../lib/queryClient";
 import { useToast } from "../../hooks/use-toast";
 import { format } from "date-fns";
 
-type DfurProject = {
-  id: string;
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
 
-  transactionId: string;
-  transactionDate: string;
+type DfurProject = {
+  id: number;
+
+  transaction_id: string;
+  transaction_date: string | null;
 
   project: string;
-  natureOfCollection: string;
+  name_of_collection: string;
   location: string;
 
-  totalCostApproved: number | string;
-  totalCostIncurred: number | string;
+  total_cost_approved: string;
+  total_cost_incurred: string;
 
-  dateStarted: string;
-  targetCompletionDate: string;
-  numberOfExtensions: number;
+  date_started: string | null;
+  target_completion_date: string | null;
+  no_extensions: number;
 
-  status:
-    | "Planned"
-    | "In Progress"
-    | "Completed"
-    | "On Hold"
-    | "Cancelled";
+  status: string;
 
-  reviewStatus: "pending" | "approved" | "flagged";
+  review_status: "pending" | "approved" | "flagged";
+  review_comment?: string;
 
   remarks?: string;
-  reviewComment?: string;
 };
 
+type ApiResponse = {
+  data: DfurProject[];
+  message: string;
+};
+
+type TotalDataResponse = {
+  overall_cost_approved: string;
+  overall_cost_incurred: string;
+  total_active: number;
+  total_approved: number;
+  total_data: number;
+  total_flagged: number;
+  total_pending: number;
+};
 
 const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Completed":
+  const normalizedStatus = status?.toLowerCase() || "";
+  switch (normalizedStatus) {
+    case "completed":
       return "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20";
-    case "In Progress":
+    case "in progress":
+    case "in_progress":
       return "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20";
-    case "Planned":
+    case "planned":
       return "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20";
-    case "On Hold":
+    case "on hold":
+    case "on_hold":
       return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20";
-    case "Cancelled":
+    case "cancelled":
       return "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20";
     default:
       return "bg-muted";
@@ -95,6 +109,14 @@ const getReviewStatusColor = (status: string) => {
   }
 };
 
+const formatStatusDisplay = (status: string) => {
+  if (!status) return "N/A";
+  return status
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+
 export default function ApproverDFUR() {
   const [selectedProject, setSelectedProject] = useState<DfurProject | null>(
     null,
@@ -106,37 +128,64 @@ export default function ApproverDFUR() {
   const [reviewComment, setReviewComment] = useState("");
   const { toast } = useToast();
 
-  const { data: projects, isLoading } = useQuery<DfurProject[]>({
-    queryKey: ["/api/dfur"],
+  // Fetch DFUR projects
+  const { data: apiData, isLoading } = useQuery<ApiResponse>({
+    queryKey: ["dfur-projects"],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/get-dfur-project`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch DFUR projects");
+      }
+      return response.json();
+    },
   });
 
-  const reviewProject = useMutation({
-    mutationFn: async ({
-      id,
-      status,
-      comment,
-    }: {
-      id: string;
-      status: "approved" | "flagged";
-      comment?: string;
-    }) => {
-      return apiRequest("PATCH", `/api/dfur/${id}/review`, {
-        status,
-        comment: comment || null,
-        reviewedBy: "Approver",
-      });
+  // Fetch total data for summary cards
+  const { data: totalData } = useQuery<TotalDataResponse>({
+    queryKey: ["dfur-total-data"],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/get-total-data-dfur-project`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch total data");
+      }
+      return response.json();
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dfur"] });
+  });
+
+  const projects = apiData?.data || [];
+
+  // Approve project mutation
+  const approveProject = useMutation({
+    mutationFn: async ({ id }: { id: number }) => {
+      const payload = {
+        dfur_id: id,
+        review_status: "approved",
+        approval_type: "dfur",
+      };
+
+      const response = await fetch(`${API_BASE_URL}/put-approval`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || "Failed to approve project. Please try again.",
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dfur-projects"] });
+      queryClient.invalidateQueries({ queryKey: ["dfur-total-data"] });
       toast({
-        title:
-          variables.status === "approved"
-            ? "Project Approved"
-            : "Project Flagged",
-        description:
-          variables.status === "approved"
-            ? "DFUR project has been approved."
-            : "DFUR project has been flagged for review.",
+        title: "Project Approved",
+        description: "DFUR project has been approved successfully.",
       });
       setSelectedProject(null);
       setReviewAction(null);
@@ -145,41 +194,109 @@ export default function ApproverDFUR() {
     onError: (error: Error) => {
       toast({
         variant: "destructive",
-        title: "Error Reviewing Project",
+        title: "Error Approving Project",
         description:
-          error.message || "Failed to review project. Please try again.",
+          error.message || "Failed to approve project. Please try again.",
+      });
+    },
+  });
+
+  // Flag project mutation
+  const flagProject = useMutation({
+    mutationFn: async ({
+      id,
+      comment,
+    }: {
+      id: number;
+      comment: string;
+    }) => {
+      // Get user ID from localStorage or auth context
+      const reviewedBy = localStorage.getItem("user_id") || "1";
+
+      const payload = {
+        dfur_id: id,
+        reviewed_by: parseInt(reviewedBy),
+        comment: comment,
+        flag_type: "dfur",
+      };
+
+      const response = await fetch(`${API_BASE_URL}/put-flag-comment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || "Failed to flag project. Please try again.",
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dfur-projects"] });
+      queryClient.invalidateQueries({ queryKey: ["dfur-total-data"] });
+      toast({
+        title: "Project Flagged",
+        description: "DFUR project has been flagged for review.",
+      });
+      setSelectedProject(null);
+      setReviewAction(null);
+      setReviewComment("");
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error Flagging Project",
+        description:
+          error.message || "Failed to flag project. Please try again.",
       });
     },
   });
 
   const handleReview = () => {
     if (!selectedProject || !reviewAction) return;
-    if (reviewAction === "flagged" && !reviewComment.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Comment Required",
-        description: "Please provide a comment when flagging a project.",
+
+    if (reviewAction === "approved") {
+      approveProject.mutate({ id: selectedProject.id });
+    } else if (reviewAction === "flagged") {
+      if (!reviewComment.trim()) {
+        toast({
+          variant: "destructive",
+          title: "Comment Required",
+          description: "Please provide a comment when flagging a project.",
+        });
+        return;
+      }
+      flagProject.mutate({
+        id: selectedProject.id,
+        comment: reviewComment.trim(),
       });
-      return;
     }
-    reviewProject.mutate({
-      id: selectedProject.id,
-      status: reviewAction,
-      comment: reviewComment.trim() || undefined,
-    });
   };
 
-  const formatCurrency = (value: number | string) => {
+  const formatCurrency = (value: string | number) => {
     const num = typeof value === "string" ? parseFloat(value) : value;
     return `₱${num.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const pendingProjects =
-    projects?.filter((p) => p.reviewStatus === "pending").length || 0;
-  const approvedProjects =
-    projects?.filter((p) => p.reviewStatus === "approved").length || 0;
-  const flaggedProjects =
-    projects?.filter((p) => p.reviewStatus === "flagged").length || 0;
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A";
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "N/A";
+      }
+      return format(date, "MMM dd, yyyy");
+    } catch (error) {
+      return "N/A";
+    }
+  };
 
   return (
     <ApproverLayout>
@@ -208,7 +325,7 @@ export default function ApproverDFUR() {
                 className="text-4xl font-bold text-foreground"
                 data-testid="text-total-projects"
               >
-                {projects?.length || 0}
+                {totalData?.total_data || 0}
               </p>
             </CardContent>
           </Card>
@@ -225,7 +342,7 @@ export default function ApproverDFUR() {
                 className="text-4xl font-bold text-foreground"
                 data-testid="text-pending-projects"
               >
-                {pendingProjects}
+                {totalData?.total_pending || 0}
               </p>
             </CardContent>
           </Card>
@@ -242,7 +359,7 @@ export default function ApproverDFUR() {
                 className="text-4xl font-bold text-foreground"
                 data-testid="text-approved-projects"
               >
-                {approvedProjects}
+                {totalData?.total_approved || 0}
               </p>
             </CardContent>
           </Card>
@@ -250,7 +367,7 @@ export default function ApproverDFUR() {
           <Card className="bg-gradient-to-br from-red-500/5 to-red-500/10 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 font-poppins text-base">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+                <Flag className="h-5 w-5 text-red-600" />
                 Flagged
               </CardTitle>
             </CardHeader>
@@ -259,7 +376,7 @@ export default function ApproverDFUR() {
                 className="text-4xl font-bold text-foreground"
                 data-testid="text-flagged-projects"
               >
-                {flaggedProjects}
+                {totalData?.total_flagged || 0}
               </p>
             </CardContent>
           </Card>
@@ -316,38 +433,38 @@ export default function ApproverDFUR() {
                           data-testid={`row-dfur-${project.id}`}
                         >
                           <TableCell className="font-mono text-sm">
-                            {project.transactionId}
+                            {project.transaction_id}
                           </TableCell>
                           <TableCell className="font-medium max-w-[200px] truncate">
                             {project.project}
                           </TableCell>
                           <TableCell className="text-sm">
-                            {project.natureOfCollection}
+                            {project.name_of_collection}
                           </TableCell>
                           <TableCell className="text-right font-semibold">
-                            {formatCurrency(project.totalCostApproved)}
+                            {formatCurrency(project.total_cost_approved)}
                           </TableCell>
                           <TableCell className="text-right">
-                            {formatCurrency(project.totalCostIncurred)}
+                            {formatCurrency(project.total_cost_incurred)}
                           </TableCell>
                           <TableCell>
                             <Badge
                               className={getStatusColor(project.status)}
                               variant="outline"
                             >
-                              {project.status}
+                              {formatStatusDisplay(project.status)}
                             </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge
                               className={getReviewStatusColor(
-                                project.reviewStatus,
+                                project.review_status,
                               )}
                               variant="outline"
                             >
-                              {project.reviewStatus === "pending"
+                              {project.review_status === "pending"
                                 ? "Pending"
-                                : project.reviewStatus === "approved"
+                                : project.review_status === "approved"
                                   ? "Approved"
                                   : "Flagged"}
                             </Badge>
@@ -371,7 +488,7 @@ export default function ApproverDFUR() {
                                   setSelectedProject(project);
                                   setReviewAction("approved");
                                 }}
-                                disabled={project.reviewStatus === "approved"}
+                                disabled={project.review_status === "approved"}
                                 data-testid={`button-approve-${project.id}`}
                               >
                                 <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -385,7 +502,7 @@ export default function ApproverDFUR() {
                                   setSelectedProject(project);
                                   setReviewAction("flagged");
                                 }}
-                                disabled={project.reviewStatus === "approved"}
+                                disabled={project.review_status === "approved"}
                                 data-testid={`button-flag-${project.id}`}
                               >
                                 <Flag className="h-4 w-4 mr-1" />
@@ -422,7 +539,7 @@ export default function ApproverDFUR() {
                       Transaction ID
                     </p>
                     <p className="font-mono font-medium">
-                      {viewProject.transactionId}
+                      {viewProject.transaction_id}
                     </p>
                   </div>
                   <div>
@@ -430,10 +547,7 @@ export default function ApproverDFUR() {
                       Transaction Date
                     </p>
                     <p className="font-medium">
-                      {format(
-                        new Date(viewProject.transactionDate),
-                        "MMM dd, yyyy",
-                      )}
+                      {formatDate(viewProject.transaction_date)}
                     </p>
                   </div>
                 </div>
@@ -447,7 +561,7 @@ export default function ApproverDFUR() {
                       Nature of Collection
                     </p>
                     <p className="font-medium">
-                      {viewProject.natureOfCollection}
+                      {viewProject.name_of_collection}
                     </p>
                   </div>
                   <div>
@@ -461,7 +575,7 @@ export default function ApproverDFUR() {
                       Total Cost Approved
                     </p>
                     <p className="font-semibold text-lg">
-                      {formatCurrency(viewProject.totalCostApproved)}
+                      {formatCurrency(viewProject.total_cost_approved)}
                     </p>
                   </div>
                   <div>
@@ -469,7 +583,7 @@ export default function ApproverDFUR() {
                       Total Cost Incurred
                     </p>
                     <p className="font-semibold text-lg">
-                      {formatCurrency(viewProject.totalCostIncurred)}
+                      {formatCurrency(viewProject.total_cost_incurred)}
                     </p>
                   </div>
                 </div>
@@ -479,10 +593,7 @@ export default function ApproverDFUR() {
                       Date Started
                     </p>
                     <p className="font-medium">
-                      {format(
-                        new Date(viewProject.dateStarted),
-                        "MMM dd, yyyy",
-                      )}
+                      {formatDate(viewProject.date_started)}
                     </p>
                   </div>
                   <div>
@@ -490,10 +601,7 @@ export default function ApproverDFUR() {
                       Target Completion
                     </p>
                     <p className="font-medium">
-                      {format(
-                        new Date(viewProject.targetCompletionDate),
-                        "MMM dd, yyyy",
-                      )}
+                      {formatDate(viewProject.target_completion_date)}
                     </p>
                   </div>
                 </div>
@@ -504,7 +612,7 @@ export default function ApproverDFUR() {
                       className={getStatusColor(viewProject.status)}
                       variant="outline"
                     >
-                      {viewProject.status}
+                      {formatStatusDisplay(viewProject.status)}
                     </Badge>
                   </div>
                   <div>
@@ -512,7 +620,7 @@ export default function ApproverDFUR() {
                       No. of Extensions
                     </p>
                     <p className="font-medium">
-                      {viewProject.numberOfExtensions}
+                      {viewProject.no_extensions}
                     </p>
                   </div>
                 </div>
@@ -522,12 +630,12 @@ export default function ApproverDFUR() {
                     <p className="font-medium">{viewProject.remarks}</p>
                   </div>
                 )}
-                {viewProject.reviewComment && (
+                {viewProject.review_comment && (
                   <div className="bg-muted p-4 rounded-md">
                     <p className="text-sm text-muted-foreground">
                       Review Comment
                     </p>
-                    <p className="font-medium">{viewProject.reviewComment}</p>
+                    <p className="font-medium">{viewProject.review_comment}</p>
                   </div>
                 )}
               </div>
@@ -563,7 +671,7 @@ export default function ApproverDFUR() {
                     Transaction ID
                   </p>
                   <p className="font-mono text-sm">
-                    {selectedProject.transactionId}
+                    {selectedProject.transaction_id}
                   </p>
                 </div>
               )}
@@ -602,7 +710,7 @@ export default function ApproverDFUR() {
                 <Button
                   onClick={handleReview}
                   disabled={
-                    reviewProject.isPending ||
+                    (approveProject.isPending || flagProject.isPending) ||
                     (reviewAction === "flagged" && !reviewComment.trim())
                   }
                   variant={
@@ -613,14 +721,14 @@ export default function ApproverDFUR() {
                   {reviewAction === "approved" ? (
                     <>
                       <CheckCircle2 className="h-4 w-4 mr-2" />
-                      {reviewProject.isPending
+                      {approveProject.isPending
                         ? "Approving..."
                         : "Approve Project"}
                     </>
                   ) : (
                     <>
                       <AlertTriangle className="h-4 w-4 mr-2" />
-                      {reviewProject.isPending ? "Flagging..." : "Flag Project"}
+                      {flagProject.isPending ? "Flagging..." : "Flag Project"}
                     </>
                   )}
                 </Button>

@@ -36,42 +36,48 @@ import { Textarea } from "../../components/ui/textarea";
 import { Label } from "../../components/ui/label";
 import { useToast } from "../../hooks/use-toast";
 import { Flag, CheckCircle2 } from "lucide-react";
-import { apiRequest, queryClient } from "../../lib/queryClient";
-
-import { format, parse } from "date-fns";
+import { queryClient } from "../../lib/queryClient";
+import { format } from "date-fns";
 import { ApproverLayout } from "../../components/approver-layout";
+import { useAuth } from "@/contexts/auth-context";
 
-type BaseTransaction = {
-  id: string;
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
 
-  transactionId: string;
-  transactionDate: string;
+type ReviewStatus = "pending" | "approved" | "flagged";
 
-  category: string;
-  subcategory: string;
-  fundSource: string;
-
-  amount: string;
-
-  reviewStatus: "pending" | "approved" | "flagged";
-  reviewComment?: string;
-};
-
-type Collection = BaseTransaction & {
-  natureOfCollection: string;
+type Collection = {
+  id: number;
+  transaction_id: string;
+  transaction_date: string | null;
+  nature_of_collection: string;
   payor: string;
-  orNumber: string;
+  or_number: string;
+  amount: string;
+  category: string;
+  fund_source: string;
+  review_status: ReviewStatus;
+  review_comment: string | null;
+  is_flagged: number;
 };
 
-type Disbursement = BaseTransaction & {
-  natureOfDisbursement: string;
+type Disbursement = {
+  id: number;
+  transaction_id: string;
+  transaction_date: string | null;
+  nature_of_disbursement: string;
   payee: string;
-  dvNumber: string;
+  or_number: string | null;
+  amount: string;
+  category: string;
+  fund_source: string;
+  review_status: ReviewStatus;
+  review_comment: string | null;
+  is_flagged: number;
 };
-
 
 export default function ApproverSRE() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"collections" | "disbursements">(
     "collections",
   );
@@ -84,8 +90,6 @@ export default function ApproverSRE() {
   const [reviewAction, setReviewAction] = useState<"approved" | "flagged">(
     "approved",
   );
-
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
 
   // Fetch collections
   const { data: collections = [], isLoading: collectionsLoading } = useQuery<
@@ -101,7 +105,6 @@ export default function ApproverSRE() {
     },
   });
 
-
   // Fetch disbursements
   const { data: disbursements = [], isLoading: disbursementsLoading } =
     useQuery<Disbursement[]>({
@@ -115,28 +118,44 @@ export default function ApproverSRE() {
       },
     });
 
-  // Review mutation
-  const reviewMutation = useMutation({
+  // Approve mutation
+  const approveMutation = useMutation({
     mutationFn: async ({
       id,
       type,
-      status,
-      comment,
     }: {
-      id: string;
+      id: number;
       type: "collection" | "disbursement";
-      status: "approved" | "flagged";
-      comment?: string;
     }) => {
-      const endpoint =
+      const payload =
         type === "collection"
-          ? `/api/collections/${id}/review`
-          : `/api/disbursements/${id}/review`;
-      return apiRequest("PATCH", endpoint, {
-        status,
-        comment,
-        reviewedBy: "Approver",
+          ? {
+              collection_id: id,
+              review_status: "approved",
+              approval_type: "collection",
+            }
+          : {
+              disbursement_id: id,
+              review_status: "approved",
+              approval_type: "disbursement",
+            };
+
+      const response = await fetch(`${API_BASE_URL}/put-approval`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || "Failed to approve transaction. Please try again.",
+        );
+      }
+
+      return response.json();
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -146,14 +165,8 @@ export default function ApproverSRE() {
             : ["disbursements"],
       });
       toast({
-        title:
-          variables.status === "approved"
-            ? "Transaction Approved"
-            : "Transaction Flagged",
-        description:
-          variables.status === "approved"
-            ? "The transaction has been approved."
-            : "The transaction has been flagged for review.",
+        title: "Transaction Approved",
+        description: "The transaction has been approved successfully.",
       });
       setReviewDialogOpen(false);
       setReviewComment("");
@@ -162,9 +175,80 @@ export default function ApproverSRE() {
     onError: (error: Error) => {
       toast({
         variant: "destructive",
-        title: "Review Failed",
+        title: "Approval Failed",
         description:
-          error.message || "Failed to review transaction. Please try again.",
+          error.message || "Failed to approve transaction. Please try again.",
+      });
+    },
+  });
+
+  // Flag mutation
+  const flagMutation = useMutation({
+    mutationFn: async ({
+      id,
+      type,
+      comment,
+    }: {
+      id: number;
+      type: "collection" | "disbursement";
+      comment: string;
+    }) => {
+      const reviewedBy = user?.id?.toString() || "1";
+
+      const payload =
+        type === "collection"
+          ? {
+              collection_id: id,
+              reviewed_by: parseInt(reviewedBy),
+              comment: comment,
+              flag_type: "collection",
+            }
+          : {
+              disbursement_id: id,
+              reviewed_by: parseInt(reviewedBy),
+              comment: comment,
+              flag_type: "disbursement",
+            };
+
+      const response = await fetch(`${API_BASE_URL}/put-flag-comment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || "Failed to flag transaction. Please try again.",
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey:
+          variables.type === "collection"
+            ? ["collections"]
+            : ["disbursements"],
+      });
+      toast({
+        title: "Transaction Flagged",
+        description:
+          "The transaction has been flagged for review.",
+      });
+      setReviewDialogOpen(false);
+      setReviewComment("");
+      setSelectedTransaction(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Flag Failed",
+        description:
+          error.message || "Failed to flag transaction. Please try again.",
       });
     },
   });
@@ -176,7 +260,7 @@ export default function ApproverSRE() {
   ) => {
     setSelectedTransaction({ ...transaction, type });
     setReviewAction(action);
-    setReviewComment(transaction.reviewComment || "");
+    setReviewComment(transaction.review_comment || "");
     setReviewDialogOpen(true);
   };
 
@@ -193,12 +277,18 @@ export default function ApproverSRE() {
       return;
     }
 
-    reviewMutation.mutate({
-      id: selectedTransaction.id,
-      type: selectedTransaction.type,
-      status: reviewAction,
-      comment: reviewComment.trim() || undefined,
-    });
+    if (reviewAction === "approved") {
+      approveMutation.mutate({
+        id: selectedTransaction.id,
+        type: selectedTransaction.type,
+      });
+    } else {
+      flagMutation.mutate({
+        id: selectedTransaction.id,
+        type: selectedTransaction.type,
+        comment: reviewComment.trim(),
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -224,26 +314,19 @@ export default function ApproverSRE() {
     return `₱${parseFloat(amount).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-const formatDate = (dateString: string) => {
-  if (!dateString) return "N/A";
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A";
 
-  try {
-    const parsedDate = parse(
-      dateString,
-      "EEE, dd MMM yyyy HH:mm:ss 'GMT'",
-      new Date()
-    );
-
-    if (isNaN(parsedDate.getTime())) {
-      return "Invalid Date";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "N/A";
+      }
+      return format(date, "MMM dd, yyyy");
+    } catch (error) {
+      return "N/A";
     }
-
-    return format(parsedDate, "MMM dd, yyyy");
-  } catch (error) {
-    console.error("Date formatting error:", error);
-    return "Invalid Date";
-  }
-};
+  };
 
   const totalCollections = collections.reduce(
     (sum, c) => sum + parseFloat(c.amount),
@@ -254,6 +337,8 @@ const formatDate = (dateString: string) => {
     0,
   );
 
+  const isPending = approveMutation.isPending || flagMutation.isPending;
+
   return (
     <ApproverLayout>
       <div className="p-8 space-y-6">
@@ -262,7 +347,7 @@ const formatDate = (dateString: string) => {
             Statement of Receipts & Expenditures (SRE)
           </h1>
           <p className="text-muted-foreground mt-1">
-            Approve or reject financial transactions
+            Approve or flag financial transactions
           </p>
         </div>
 
@@ -320,7 +405,7 @@ const formatDate = (dateString: string) => {
                           <TableRow
                             key={collection.id}
                             className={
-                              collection.reviewStatus === "flagged"
+                              collection.is_flagged === 1
                                 ? "bg-red-50"
                                 : ""
                             }
@@ -333,15 +418,15 @@ const formatDate = (dateString: string) => {
                               {formatDate(collection.transaction_date)}
                             </TableCell>
                             <TableCell className="max-w-xs truncate">
-                              {collection.natureOfCollection}
+                              {collection.nature_of_collection}
                             </TableCell>
                             <TableCell>{collection.payor}</TableCell>
-                            <TableCell>{collection.orNumber}</TableCell>
+                            <TableCell>{collection.or_number}</TableCell>
                             <TableCell className="text-right font-medium">
                               {formatCurrency(collection.amount)}
                             </TableCell>
                             <TableCell className="text-center">
-                              {getStatusBadge(collection.reviewStatus)}
+                              {getStatusBadge(collection.review_status)}
                             </TableCell>
                             <TableCell className="text-center">
                               <div className="flex gap-2 justify-center">
@@ -378,11 +463,6 @@ const formatDate = (dateString: string) => {
                                   Flag
                                 </Button>
                               </div>
-                              {collection.reviewComment && (
-                                <div className="mt-2 text-xs text-muted-foreground italic">
-                                  Comment: {collection.reviewComment}
-                                </div>
-                              )}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -425,7 +505,7 @@ const formatDate = (dateString: string) => {
                           <TableHead>Date</TableHead>
                           <TableHead>Nature</TableHead>
                           <TableHead>Payee</TableHead>
-                          <TableHead>DV Number</TableHead>
+                          <TableHead>OR Number</TableHead>
                           <TableHead className="text-right">Amount</TableHead>
                           <TableHead className="text-center">Status</TableHead>
                           <TableHead className="text-center">Actions</TableHead>
@@ -436,28 +516,28 @@ const formatDate = (dateString: string) => {
                           <TableRow
                             key={disbursement.id}
                             className={
-                              disbursement.reviewStatus === "flagged"
+                              disbursement.is_flagged === 1
                                 ? "bg-red-50"
                                 : ""
                             }
                             data-testid={`row-disbursement-${disbursement.id}`}
                           >
                             <TableCell className="font-medium">
-                              {disbursement.transactionId}
+                              {disbursement.transaction_id}
                             </TableCell>
                             <TableCell>
-                              {formatDate(disbursement.transactionDate)}
+                              {formatDate(disbursement.transaction_date)}
                             </TableCell>
                             <TableCell className="max-w-xs truncate">
-                              {disbursement.natureOfDisbursement}
+                              {disbursement.nature_of_disbursement}
                             </TableCell>
                             <TableCell>{disbursement.payee}</TableCell>
-                            <TableCell>{disbursement.dvNumber}</TableCell>
+                            <TableCell>{disbursement.or_number || "N/A"}</TableCell>
                             <TableCell className="text-right font-medium">
                               {formatCurrency(disbursement.amount)}
                             </TableCell>
                             <TableCell className="text-center">
-                              {getStatusBadge(disbursement.reviewStatus)}
+                              {getStatusBadge(disbursement.review_status)}
                             </TableCell>
                             <TableCell className="text-center">
                               <div className="flex gap-2 justify-center">
@@ -494,11 +574,6 @@ const formatDate = (dateString: string) => {
                                   Flag
                                 </Button>
                               </div>
-                              {disbursement.reviewComment && (
-                                <div className="mt-2 text-xs text-muted-foreground italic">
-                                  Comment: {disbursement.reviewComment}
-                                </div>
-                              )}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -548,7 +623,7 @@ const formatDate = (dateString: string) => {
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Transaction ID:</span>
                   <span className="text-sm">
-                    {selectedTransaction.transactionId}
+                    {selectedTransaction.transaction_id}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -604,7 +679,7 @@ const formatDate = (dateString: string) => {
             </Button>
             <Button
               onClick={handleReviewSubmit}
-              disabled={reviewMutation.isPending}
+              disabled={isPending}
               className={
                 reviewAction === "approved"
                   ? "bg-green-600 hover:bg-green-700"
@@ -612,7 +687,7 @@ const formatDate = (dateString: string) => {
               }
               data-testid="button-confirm-review"
             >
-              {reviewMutation.isPending
+              {isPending
                 ? "Submitting..."
                 : reviewAction === "approved"
                   ? "Approve"
