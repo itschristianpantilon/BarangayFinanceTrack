@@ -47,33 +47,56 @@ import { useLocation } from "wouter";
 // Import API configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
 
-// Types
+// Backend types (matching the actual API response)
+type BackendCollection = {
+  id: number;
+  transaction_id: string;
+  transaction_date: string;
+  nature_of_collection: string;
+  category: string;
+  subcategory: string;
+  purpose?: string;
+  fund_source: string;
+  amount: number;
+  payor: string;
+  or_number: string;
+  remarks?: string;
+};
+
+type BackendDisbursement = {
+  id: number;
+  transaction_id: string;
+  transaction_date: string;
+  nature_of_disbursement: string;
+  category: string;
+  subcategory: string;
+  program_description?: string;
+  fund_source: string;
+  amount: number;
+  payee: string;
+  or_number: string;
+  remarks?: string;
+};
+
+// Frontend types for display
 type Collection = {
   id: number;
   transaction_date: string | null;
   category: string;
+  nature_of_collection?: string;
   payor: string;
   amount: string;
   created_at?: string;
-};
-
-type CollectionsApiResponse = {
-  data: Collection[];
-  message: string;
 };
 
 type Disbursement = {
   id: number;
   transaction_date: string | null;
   category: string;
+  nature_of_disbursement?: string;
   payee: string;
   amount: string;
   created_at?: string;
-};
-
-type DisbursementsApiResponse = {
-  data: Disbursement[];
-  message: string;
 };
 
 type DfurProject = {
@@ -99,6 +122,13 @@ type DfurApiResponse = {
   message: string;
 };
 
+type Comment = {
+  id: number;
+  name: string;
+  email: string;
+  comment: string;
+};
+
 export type CapitalOutlaySummary = {
   totals: {
     planned: number;
@@ -112,6 +142,29 @@ export type CapitalOutlaySummary = {
     variance: number;
   }>;
 };
+
+// Convert backend to frontend format
+function backendCollectionToFrontend(backend: BackendCollection): Collection {
+  return {
+    id: backend.id,
+    transaction_date: backend.transaction_date,
+    category: backend.category,
+    nature_of_collection: backend.nature_of_collection,
+    payor: backend.payor,
+    amount: backend.amount.toString(),
+  };
+}
+
+function backendDisbursementToFrontend(backend: BackendDisbursement): Disbursement {
+  return {
+    id: backend.id,
+    transaction_date: backend.transaction_date,
+    category: backend.category,
+    nature_of_disbursement: backend.nature_of_disbursement,
+    payee: backend.payee,
+    amount: backend.amount.toString(),
+  };
+}
 
 // Consistent color palette
 const COLORS = {
@@ -132,19 +185,35 @@ const COLORS = {
   purpleDark: "#7c3aed",   // violet-600
 };
 
-// API fetch functions
+// API fetch functions (using the same pattern as SRE page)
 const fetchCollections = async (): Promise<Collection[]> => {
   const response = await fetch(`${API_BASE_URL}/get-collection`);
   if (!response.ok) throw new Error('Failed to fetch collections');
-  const data: CollectionsApiResponse = await response.json();
-  return data.data || [];
+  const data = await response.json();
+  
+  // Handle the response structure: { data: [...] } or just [...]
+  const backendData = data.data || data || [];
+  
+  if (Array.isArray(backendData)) {
+    return backendData.map(backendCollectionToFrontend);
+  }
+  
+  return [];
 };
 
 const fetchDisbursements = async (): Promise<Disbursement[]> => {
   const response = await fetch(`${API_BASE_URL}/get-disbursement`);
   if (!response.ok) throw new Error('Failed to fetch disbursements');
-  const data: DisbursementsApiResponse = await response.json();
-  return data.data || [];
+  const data = await response.json();
+  
+  // Handle the response structure: { data: [...] } or just [...]
+  const backendData = data.data || data || [];
+  
+  if (Array.isArray(backendData)) {
+    return backendData.map(backendDisbursementToFrontend);
+  }
+  
+  return [];
 };
 
 const fetchDfurProjects = async (): Promise<DfurProject[]> => {
@@ -152,6 +221,13 @@ const fetchDfurProjects = async (): Promise<DfurProject[]> => {
   if (!response.ok) throw new Error('Failed to fetch DFUR projects');
   const data: DfurApiResponse = await response.json();
   return data.data || [];
+};
+
+const fetchComments = async (): Promise<Comment[]> => {
+  const response = await fetch(`${API_BASE_URL}/get-all-comments`);
+  if (!response.ok) throw new Error('Failed to fetch comments');
+  const data: Comment[] = await response.json();
+  return Array.isArray(data) ? data : [];
 };
 
 export default function ViewerDashboard() {
@@ -166,7 +242,7 @@ export default function ViewerDashboard() {
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch data
+  // Fetch data using the same pattern as SRE page
   const { data: collections, isLoading: isLoadingCollections } = useQuery<Collection[]>({
     queryKey: ['collections'],
     queryFn: fetchCollections,
@@ -198,6 +274,11 @@ export default function ViewerDashboard() {
   const { data: dfurProjects, isLoading: isLoadingDfurProjects } = useQuery<DfurProject[]>({
     queryKey: ['dfurProjects'],
     queryFn: fetchDfurProjects,
+  });
+
+  const { data: comments, isLoading: isLoadingComments, refetch: refetchComments } = useQuery<Comment[]>({
+    queryKey: ['comments'],
+    queryFn: fetchComments,
   });
 
   const { data: capitalOutlaySummary } = useQuery<CapitalOutlaySummary>({
@@ -249,24 +330,27 @@ export default function ViewerDashboard() {
 
     setIsSubmitting(true);
     
-    // Simulate API call - replace with actual API endpoint
     try {
-      // await fetch(`${API_BASE_URL}/submit-comment`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     name: commentName,
-      //     email: commentEmail,
-      //     comment: commentText,
-      //     contextType: 'landing-page',
-      //   }),
-      // });
+      const response = await fetch(`${API_BASE_URL}/insert-comment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: commentName || "Anonymous",
+          email: commentEmail,
+          comment: commentText,
+        }),
+      });
       
-      // For now, just show success message
-      alert("Thank you for your feedback! Your comment has been submitted for review.");
-      setCommentName("");
-      setCommentEmail("");
-      setCommentText("");
+      if (response.ok) {
+        alert("Thank you for your feedback! Your comment has been submitted for review.");
+        setCommentName("");
+        setCommentEmail("");
+        setCommentText("");
+        // Refetch comments to show the new one
+        refetchComments();
+      } else {
+        throw new Error("Failed to submit comment");
+      }
     } catch (error) {
       alert("Failed to submit comment. Please try again.");
     } finally {
@@ -282,7 +366,7 @@ export default function ViewerDashboard() {
   const totalIncurredCost = (dfurProjects || []).reduce((sum, p) => sum + safeParseAmount(p.total_cost_incurred), 0);
 
   const collectionsBySource = collections?.reduce((acc, c) => {
-    const source = c.category || "Other";
+    const source = c.nature_of_collection || c.category || "Other";
     acc[source] = (acc[source] || 0) + safeParseAmount(c.amount);
     return acc;
   }, {} as Record<string, number>);
@@ -293,7 +377,7 @@ export default function ViewerDashboard() {
   })).slice(0, 5);
 
   const disbursementsByCategory = disbursements?.reduce((acc, d) => {
-    const category = d.category || "Other";
+    const category = d.nature_of_disbursement || d.category || "Other";
     acc[category] = (acc[category] || 0) + safeParseAmount(d.amount);
     return acc;
   }, {} as Record<string, number>);
@@ -893,8 +977,8 @@ export default function ViewerDashboard() {
                             <td className="py-4 px-6 text-slate-600 whitespace-nowrap font-medium">
                               {formatDate(collection.transaction_date)}
                             </td>
-                            <td className="py-4 px-6 font-semibold text-slate-900 max-w-xs truncate" title={collection.category}>
-                              {collection.category}
+                            <td className="py-4 px-6 font-semibold text-slate-900 max-w-xs truncate" title={collection.nature_of_collection || collection.category}>
+                              {collection.nature_of_collection || collection.category}
                             </td>
                             <td className="text-right py-4 px-6 font-bold text-emerald-600">
                               {formatCurrencyCompact(safeParseAmount(collection.amount))}
@@ -953,8 +1037,8 @@ export default function ViewerDashboard() {
                             <td className="py-4 px-6 text-slate-600 whitespace-nowrap font-medium">
                               {formatDate(disbursement.transaction_date)}
                             </td>
-                            <td className="py-4 px-6 font-semibold text-slate-900 max-w-xs truncate" title={disbursement.category}>
-                              {disbursement.category}
+                            <td className="py-4 px-6 font-semibold text-slate-900 max-w-xs truncate" title={disbursement.nature_of_disbursement || disbursement.category}>
+                              {disbursement.nature_of_disbursement || disbursement.category}
                             </td>
                             <td className="text-right py-4 px-6 font-bold text-amber-600">
                               {formatCurrencyCompact(safeParseAmount(disbursement.amount))}
@@ -1462,6 +1546,54 @@ export default function ViewerDashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Display Comments */}
+          <div className="mt-12">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <MessageSquare className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900">Community Comments</h3>
+                <p className="text-sm text-slate-600">Recent feedback from our community</p>
+              </div>
+            </div>
+
+            <div className="glass-card rounded-3xl p-8 shadow-xl">
+              {isLoadingComments ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                    <span className="text-slate-500">Loading comments...</span>
+                  </div>
+                </div>
+              ) : comments && comments.length > 0 ? (
+                <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="p-6 bg-gradient-to-br from-slate-50 to-white rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-violet-400 flex items-center justify-center text-white font-bold shrink-0">
+                          {comment.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900">{comment.name}</h4>
+                          {comment.email && (
+                            <p className="text-xs text-slate-500">{comment.email}</p>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-slate-700 leading-relaxed">{comment.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-slate-500">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                  <p>No comments yet. Be the first to share your feedback!</p>
+                </div>
+              )}
             </div>
           </div>
         </section>

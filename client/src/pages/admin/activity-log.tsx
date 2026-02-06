@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import {
   Card,
@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
-import { Users, Activity, LogOut, ArrowLeft } from "lucide-react";
+import { Users, Activity, LogOut, ArrowLeft, Loader2 } from "lucide-react";
 import { UserMenu } from "../../components/user-menu";
 import logoPath from "../../assets/san_agustin.jpg";
 
@@ -35,6 +35,9 @@ interface ActivityLog {
   category: string;
   amount: string;
   status: StatusKey;
+  payee?: string;
+  payor?: string;
+  reviewComment?: string;
 }
 
 /* =======================
@@ -43,39 +46,6 @@ interface ActivityLog {
 const MOCK_ADMIN_USER = {
   role: "admin",
 };
-
-const STATIC_ACTIVITY_LOGS: ActivityLog[] = [
-  {
-    id: "1",
-    transactionId: "TXN-2025-001",
-    type: "collection",
-    date: "2025-01-10",
-    description: "Barangay clearance payment",
-    category: "Clearance Fees",
-    amount: "150.00",
-    status: "approved",
-  },
-  {
-    id: "2",
-    transactionId: "TXN-2025-002",
-    type: "disbursement",
-    date: "2025-01-11",
-    description: "Office supplies purchase",
-    category: "Office Expenses",
-    amount: "2450.75",
-    status: "pending",
-  },
-  {
-    id: "3",
-    transactionId: "TXN-2025-003",
-    type: "budget_entry",
-    date: "2025-01-12",
-    description: "Q1 Operational Budget",
-    category: "Budget Allocation",
-    amount: "50000.00",
-    status: "approved",
-  },
-];
 
 /* =======================
    LAYOUT
@@ -165,7 +135,7 @@ function AdminLayout({ children, currentPage }: AdminLayoutProps) {
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 text-destructive hover:bg-destructive/10 rounded-md"
+            className="flex items-center gap-3 px-3 py-2.5 text-destructive hover:bg-destructive/10 rounded-md w-full"
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -186,7 +156,102 @@ function AdminLayout({ children, currentPage }: AdminLayoutProps) {
    PAGE
 ======================= */
 export default function ActivityLogPage() {
-  const [limit] = useState(100);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchActivityLogs();
+  }, []);
+
+  const fetchActivityLogs = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch("http://127.0.0.1:5000/api/get-all-docs");
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Transform API data to match ActivityLog interface
+      const transformedData: ActivityLog[] = data.map((item: any) => {
+        // Determine transaction type based on transaction_id prefix
+        let type = "collection";
+        let description = "";
+        let category = "";
+        let amount = "0.00";
+        let date = "";
+        
+        if (item.transaction_id?.startsWith("COLL-")) {
+          type = "collection";
+          description = item.nature_of_collection || "Collection";
+          category = item.nature_of_collection || "Collection";
+          amount = item.amount || "0.00";
+          date = item.transaction_date || item.created_at;
+        } else if (item.transaction_id?.startsWith("DISB-")) {
+          type = "disbursement";
+          description = item.nature_of_disbursement || "Disbursement";
+          category = item.nature_of_disbursement || "Disbursement";
+          amount = item.amount || "0.00";
+          date = item.transaction_date || item.created_at;
+        } else if (item.transaction_id?.startsWith("BUDG-")) {
+          type = "budget_entry";
+          description = item.expenditure_program || "Budget Entry";
+          category = item.allocation_category || "Budget";
+          amount = item.amount || "0.00";
+          date = item.transaction_date || item.created_at;
+        } else if (item.transaction_id?.startsWith("DFUR-")) {
+          type = "dfur";
+          description = item.project || "Development Fund Utilization";
+          category = item.name_of_collection || "DFUR";
+          amount = item.total_cost_incurred || item.total_cost_approved || "0.00";
+          date = item.transaction_date || item.created_at;
+        }
+        
+        // Determine status based on review_status and is_flagged
+        let status: StatusKey = "pending";
+        if (item.review_status === "approved") {
+          status = "approved";
+        } else if (item.is_flagged === 1) {
+          status = "flagged";
+        } else if (item.review_status === "pending") {
+          status = "pending";
+        }
+        
+        return {
+          id: String(item.id),
+          transactionId: item.transaction_id || "N/A",
+          type,
+          date,
+          description,
+          category,
+          amount,
+          status,
+          payee: item.payee,
+          payor: item.payor,
+          reviewComment: item.review_comment,
+        };
+      });
+      
+      // Sort by date (newest first)
+      transformedData.sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return dateB - dateA;
+      });
+      
+      setActivityLogs(transformedData);
+    } catch (err) {
+      console.error("Error fetching activity logs:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatCurrency = (value: string) => {
     const num = parseFloat(value);
@@ -218,56 +283,97 @@ export default function ActivityLogPage() {
   return (
     <AdminLayout currentPage="activity">
       <div className="p-6 space-y-6">
-        <h1 className="text-3xl font-bold font-poppins">Activity Log</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold font-poppins">Activity Log</h1>
+          <Button onClick={fetchActivityLogs} variant="outline" size="sm">
+            Refresh
+          </Button>
+        </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Recent Transactions</CardTitle>
             <CardDescription>
-              Latest {limit} transactions (static data)
+              {loading
+                ? "Loading transactions..."
+                : `Showing ${activityLogs.length} transactions`}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Transaction ID</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {STATIC_ACTIVITY_LOGS.map((activity) => (
-                  <TableRow key={activity.id}>
-                    <TableCell className="font-mono text-xs">
-                      {activity.transactionId}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getTypeBadge(activity.type)}>
-                        {activity.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(activity.date).toLocaleDateString("en-PH")}
-                    </TableCell>
-                    <TableCell>{activity.description}</TableCell>
-                    <TableCell>{activity.category}</TableCell>
-                    <TableCell className="text-right font-semibold">
-                      {formatCurrency(activity.amount)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadge(activity.status)}>
-                        {activity.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <span className="ml-3 text-muted-foreground">
+                  Loading activity logs...
+                </span>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-destructive font-semibold mb-2">
+                  Error loading data
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">{error}</p>
+                <Button onClick={fetchActivityLogs} variant="outline">
+                  Try Again
+                </Button>
+              </div>
+            ) : activityLogs.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No transactions found
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Transaction ID</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {activityLogs.map((activity) => (
+                      <TableRow key={`${activity.transactionId}-${activity.id}`}>
+                        <TableCell className="font-mono text-xs">
+                          {activity.transactionId}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getTypeBadge(activity.type)}>
+                            {activity.type.replace("_", " ")}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {activity.date
+                            ? new Date(activity.date).toLocaleDateString("en-PH", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {activity.description}
+                        </TableCell>
+                        <TableCell>{activity.category}</TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {formatCurrency(activity.amount)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusBadge(activity.status)}>
+                            {activity.status}
+                          </Badge>
+                        </TableCell>
+
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
