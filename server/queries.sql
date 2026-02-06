@@ -224,6 +224,11 @@ SELECT * FROM budget_entries;
 SELECT * FROM collections;
 SELECT * FROM disbursements;
 SELECT * FROM dfur_projects;
+SELECT * FROM viewer_comments;
+
+ALTER table viewer_comments
+ADD COLUMN name varchar(255) after comment,
+ADD COLUMN email varchar(255) after name;
 
 ALTER TABLE budget_entries
 ADD COLUMN is_flagged BOOLEAN default 0 after review_status;
