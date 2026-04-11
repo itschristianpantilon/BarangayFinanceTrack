@@ -1287,7 +1287,7 @@ export default function DFUR() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Nature of Collection - ECONOMIC SERVICES
+                            Nature of Disbursement - ECONOMIC SERVICES
                           </FormLabel>
                           <Select
                             onValueChange={field.onChange}

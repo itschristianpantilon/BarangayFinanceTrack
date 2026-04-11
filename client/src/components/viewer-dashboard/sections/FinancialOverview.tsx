@@ -19,7 +19,10 @@ import {
 import SectionHeader from "../ui/SectionHeader";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import { COLORS } from "../../../utils/constants";
-import { formatCurrency, formatCurrencyCompact } from "../../../utils/formatters";
+import {
+  formatCurrency,
+  formatCurrencyCompact,
+} from "../../../utils/formatters";
 
 type BudgetAnalysisItem = {
   category: string;
@@ -63,7 +66,9 @@ export default function FinancialOverview({
             <div className="p-3 bg-blue-100 rounded-xl">
               <DollarSign className="w-6 h-6 text-blue-600" />
             </div>
-            <Badge className="bg-blue-100 text-blue-700 border-0">Collections</Badge>
+            <Badge className="bg-blue-100 text-blue-700 border-0">
+              Collections
+            </Badge>
           </div>
           <div className="text-3xl font-bold text-slate-900 mb-1">
             {formatCurrencyCompact(totalCollections)}
@@ -76,17 +81,23 @@ export default function FinancialOverview({
             <div className="p-3 bg-amber-100 rounded-xl">
               <Activity className="w-6 h-6 text-amber-600" />
             </div>
-            <Badge className="bg-amber-100 text-amber-700 border-0">Disbursements</Badge>
+            <Badge className="bg-amber-100 text-amber-700 border-0">
+              Disbursements
+            </Badge>
           </div>
           <div className="text-3xl font-bold text-slate-900 mb-1">
             {formatCurrencyCompact(totalDisbursements)}
           </div>
-          <div className="text-sm text-slate-600 font-medium">Total Spending</div>
+          <div className="text-sm text-slate-600 font-medium">
+            Total Expenses
+          </div>
         </div>
 
         <div className="glass-card rounded-2xl p-6 border border-emerald-200">
           <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-xl ${surplus >= 0 ? "bg-emerald-100" : "bg-red-100"}`}>
+            <div
+              className={`p-3 rounded-xl ${surplus >= 0 ? "bg-emerald-100" : "bg-red-100"}`}
+            >
               {surplus >= 0 ? (
                 <ArrowUpRight className="w-6 h-6 text-emerald-600" />
               ) : (
@@ -118,10 +129,16 @@ export default function FinancialOverview({
             <div className="p-3 bg-violet-100 rounded-xl">
               <BarChart3 className="w-6 h-6 text-violet-600" />
             </div>
-            <Badge className="bg-violet-100 text-violet-700 border-0">Rate</Badge>
+            <Badge className="bg-violet-100 text-violet-700 border-0">
+              Rate
+            </Badge>
           </div>
-          <div className="text-3xl font-bold text-slate-900 mb-1">{utilizationRate}%</div>
-          <div className="text-sm text-slate-600 font-medium">Utilization Rate</div>
+          <div className="text-3xl font-bold text-slate-900 mb-1">
+            {utilizationRate}%
+          </div>
+          <div className="text-sm text-slate-600 font-medium">
+            Utilization Rate
+          </div>
         </div>
       </div>
 
@@ -133,8 +150,8 @@ export default function FinancialOverview({
               Budget Analysis
             </h3>
             <p className="text-slate-600 text-xs md:text-base">
-              Annual Budget Ordinance (ABO) vs. Statement of Receipts &amp; Expenditures
-              (SRE) — actual spending by programme
+              Annual Budget Ordinance (ABO) vs. Statement of Receipts &amp;
+              Expenditures (SRE) — actual spending by programme
             </p>
           </div>
           <div className="p-2 md:p-4 bg-blue-100 rounded-2xl">
@@ -150,7 +167,9 @@ export default function FinancialOverview({
           />
         ) : budgetAnalysisData.length === 0 ? (
           <div className="flex items-center justify-center h-[300px]">
-            <p className="text-slate-500">No ABO data available for this year.</p>
+            <p className="text-slate-500">
+              No ABO data available for this year.
+            </p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={450}>
@@ -160,15 +179,35 @@ export default function FinancialOverview({
             >
               <defs>
                 <linearGradient id="aboGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={COLORS.primary} stopOpacity={0.85} />
-                  <stop offset="100%" stopColor={COLORS.primaryDark} stopOpacity={0.65} />
+                  <stop
+                    offset="0%"
+                    stopColor={COLORS.primary}
+                    stopOpacity={0.85}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor={COLORS.primaryDark}
+                    stopOpacity={0.65}
+                  />
                 </linearGradient>
                 <linearGradient id="sreGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={COLORS.success} stopOpacity={0.85} />
-                  <stop offset="100%" stopColor={COLORS.successDark} stopOpacity={0.65} />
+                  <stop
+                    offset="0%"
+                    stopColor={COLORS.success}
+                    stopOpacity={0.85}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor={COLORS.successDark}
+                    stopOpacity={0.65}
+                  />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e2e8f0"
+                opacity={0.5}
+              />
               <XAxis
                 dataKey="category"
                 angle={-45}
@@ -200,7 +239,9 @@ export default function FinancialOverview({
                 wrapperStyle={{ paddingTop: "20px" }}
                 iconType="circle"
                 formatter={(value) =>
-                  value === "planned" ? "ABO – Planned Budget" : "SRE – Actual Spending"
+                  value === "planned"
+                    ? "ABO – Planned Budget"
+                    : "SRE – Actual Spending"
                 }
               />
               <Bar
