@@ -660,8 +660,12 @@ function PageFileActions({
     setIsDeleting(true);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/delete-validation-docs/${pageId}/budget_entries`,
-        { method: "DELETE" },
+        `${API_BASE_URL}/delete-validation-docs/${pageId}/dfur_projects`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data_type: "dfur_projects" }),
+        },
       );
 
       if (!response.ok) {
@@ -1172,7 +1176,7 @@ export default function DFUR() {
               {/*  DATA ACTIONS */}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500 hidden sm:inline">
-                  Data
+                  Insert Data
                 </span>
 
                 <Button

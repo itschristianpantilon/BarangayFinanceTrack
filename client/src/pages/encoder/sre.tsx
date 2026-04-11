@@ -778,8 +778,12 @@ function PageFileActions({
     setIsDeleting(true);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/delete-validation-docs/${pageId}/budget_entries`,
-        { method: "DELETE" },
+        `${API_BASE_URL}/delete-validation-docs/${pageId}/collections`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data_type: "collections" }),
+        },
       );
 
       if (!response.ok) {

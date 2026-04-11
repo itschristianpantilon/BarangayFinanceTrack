@@ -535,7 +535,11 @@ function PageFileActions({
     try {
       const response = await fetch(
         `${API_BASE_URL}/delete-validation-docs/${pageId}/budget_entries`,
-        { method: "DELETE" },
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data_type: "budget_entries" }),
+        },
       );
 
       if (!response.ok) {
