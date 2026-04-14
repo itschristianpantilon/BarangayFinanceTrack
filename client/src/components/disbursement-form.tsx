@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
-import { Plus, Edit } from "lucide-react";
+import { Plus, Edit, Upload, Camera, X, FileImage, File } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
@@ -80,6 +80,13 @@ interface DisbursementFormProps {
   trigger?: React.ReactNode;
 }
 
+// DV Supporting Document file type
+type DVSupportingFile = {
+  file: File;
+  preview: string; // object URL or data URL for images
+  isImage: boolean;
+};
+
 // Convert frontend to backend format
 function frontendToBackend(
   frontendData: InsertDisbursement,
@@ -119,6 +126,11 @@ export function DisbursementForm({
   const [transactionId, setTransactionId] = useState("");
   const [idGenerationError, setIdGenerationError] = useState(false);
   const isEditMode = !!disbursement;
+
+  // DV Supporting Document state
+  const [dvSupportingFiles, setDvSupportingFiles] = useState<DVSupportingFile[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // TODO: Get this from your auth context/session
   const currentUserId = 1;
@@ -180,6 +192,9 @@ export function DisbursementForm({
           dvNumber: "",
           remarks: "",
         });
+        // Clear supporting documents on close
+        dvSupportingFiles.forEach((f) => URL.revokeObjectURL(f.preview));
+        setDvSupportingFiles([]);
       }
     } else if (disbursement) {
       form.reset({
@@ -197,6 +212,15 @@ export function DisbursementForm({
       });
     }
   }, [open, disbursement, form, isEditMode]);
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      dvSupportingFiles.forEach((f) => {
+        if (f.preview.startsWith("blob:")) URL.revokeObjectURL(f.preview);
+      });
+    };
+  }, [dvSupportingFiles]);
 
   // Fetch new transaction ID when dialog opens (only for create mode)
   useEffect(() => {
@@ -241,6 +265,32 @@ export function DisbursementForm({
     }
   }, [open, isEditMode, form, toast]);
 
+  // Handle file selection (upload or camera)
+  const handleFilesSelected = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const newFiles: DVSupportingFile[] = [];
+
+    Array.from(files).forEach((file) => {
+      const isImage = file.type.startsWith("image/");
+      const preview = isImage ? URL.createObjectURL(file) : "";
+      newFiles.push({ file, preview, isImage });
+    });
+
+    setDvSupportingFiles((prev) => [...prev, ...newFiles]);
+  };
+
+  // Remove a supporting document
+  const removeFile = (index: number) => {
+    setDvSupportingFiles((prev) => {
+      const toRemove = prev[index];
+      if (toRemove.preview.startsWith("blob:")) {
+        URL.revokeObjectURL(toRemove.preview);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
   const saveDisbursement = useMutation({
     mutationFn: async (data: InsertDisbursement) => {
       const backendData = frontendToBackend(
@@ -252,6 +302,25 @@ export function DisbursementForm({
       const endpoint = isEditMode ? api.disbursements.update : api.disbursements.create;
       const method = isEditMode ? "PUT" : "POST";
 
+      // If there are supporting documents, use FormData to include files
+      if (dvSupportingFiles.length > 0) {
+        const formData = new FormData();
+        formData.append("data", JSON.stringify(backendData));
+        dvSupportingFiles.forEach((f, idx) => {
+          formData.append(`supporting_document_${idx}`, f.file, f.file.name);
+        });
+
+        const result = await apiCall(endpoint, {
+          method,
+          body: formData,
+          // Do NOT set Content-Type header — browser sets it with boundary automatically
+        });
+
+        if (result.error) throw new Error(result.error);
+        return result.data;
+      }
+
+      // No files — send JSON as before
       const result = await apiCall(endpoint, {
         method,
         body: JSON.stringify(backendData),
@@ -720,6 +789,118 @@ export function DisbursementForm({
                 </FormItem>
               )}
             />
+
+            {/* ─── DV Supporting Document ─── */}
+            <div className="space-y-3" data-testid="section-dv-supporting-document">
+
+                <FormLabel>DV Supporting Document{" "}</FormLabel>
+                <span className="text-muted-foreground font-normal">(Optional)</span>
+
+              <p className="text-xs text-muted-foreground">
+                Attach photos or files of the supporting document (receipts, vouchers, etc.).
+              </p>
+
+              {/* Upload / Camera buttons */}
+              <div className="flex gap-2 flex-wrap">
+                {/* Hidden file input for general upload */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
+                  multiple
+                  className="hidden"
+                  data-testid="input-dv-supporting-file"
+                  onChange={(e) => handleFilesSelected(e.target.files)}
+                  // Reset value so same file can be re-selected
+                  onClick={(e) => { (e.target as HTMLInputElement).value = ""; }}
+                />
+
+                {/* Hidden camera input — capture="environment" opens rear camera on mobile */}
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  data-testid="input-dv-supporting-camera"
+                  onChange={(e) => handleFilesSelected(e.target.files)}
+                  onClick={(e) => { (e.target as HTMLInputElement).value = ""; }}
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                  data-testid="button-dv-upload"
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload File
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => cameraInputRef.current?.click()}
+                  data-testid="button-dv-camera"
+                >
+                  <Camera className="h-4 w-4" />
+                  Take Photo
+                </Button>
+              </div>
+
+              {/* Preview list */}
+              {dvSupportingFiles.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 mt-2 sm:grid-cols-3">
+                  {dvSupportingFiles.map((f, idx) => (
+                    <div
+                      key={idx}
+                      className="relative group border rounded-md overflow-hidden bg-muted"
+                      data-testid={`dv-supporting-file-${idx}`}
+                    >
+                      {f.isImage ? (
+                        <img
+                          src={f.preview}
+                          alt={f.file.name}
+                          className="w-full h-24 object-cover"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-24 gap-1 px-2">
+                          <File className="h-8 w-8 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground text-center truncate w-full">
+                            {f.file.name}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* File name overlay for images */}
+                      {f.isImage && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-0.5">
+                          <span className="text-xs text-white truncate block">
+                            {f.file.name}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Remove button */}
+                      <button
+                        type="button"
+                        onClick={() => removeFile(idx)}
+                        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                        aria-label={`Remove ${f.file.name}`}
+                        data-testid={`button-remove-file-${idx}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* ─── End DV Supporting Document ─── */}
 
             {/* Remarks - Optional */}
             <FormField
