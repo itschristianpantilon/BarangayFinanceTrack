@@ -20,6 +20,8 @@ import {
   FileText,
   Loader2,
   Upload,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react";
 import { EncoderLayout } from "../../components/encoder-layout";
 import { Button } from "../../components/ui/button";
@@ -82,6 +84,7 @@ import { format } from "date-fns";
 import { api, apiCall } from "../../utils/api";
 import { AboExcelUploadDialog } from "../../components/excel-upload-dialog";
 import { exportDFURToExcel } from "../../utils/exportDFURToExcel";
+import { apiFetch } from "./abo";
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   "https://barangayfinancetrackbackenddeployment.onrender.com/api";
@@ -907,6 +910,24 @@ export default function DFUR() {
     },
   });
 
+  const { data: varianceData, isLoading: isVarianceLoading } = useQuery({
+    queryKey: ["variance-data"],
+    queryFn: async () => {
+      const response = await apiFetch("/get-variance-data");
+      return response.data as {
+        actual_total: string;
+        budget_total: string;
+        collections_total: string;
+        disbursement_total: string;
+        status: string;
+        variance: string;
+      };
+    },
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+  });
+
   const projects: DfurProject[] = projectsResponse?.data || [];
   const projectsPageId = projects[0]?.id ?? "";
   // Pagination derived values
@@ -1551,6 +1572,57 @@ export default function DFUR() {
           </div>
         </div>
 
+        <div>
+          
+                  {/* New variance card */}
+        <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 shadow-lg">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm md:text-base font-medium text-muted-foreground">
+              Actual Total
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isVarianceLoading ? (
+              <div className="h-9 w-40 bg-muted rounded animate-pulse" />
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  {varianceData && parseFloat(varianceData.actual_total) < 0 ? (
+                    <TrendingDown className="h-6 w-6 text-destructive" />
+                  ) : (
+                    <TrendingUp className="h-6 w-6 text-emerald-600" />
+                  )}
+                  <p
+                    className={`text-2xl md:text-3xl font-bold ${
+                      varianceData && parseFloat(varianceData.actual_total) < 0
+                        ? "text-destructive"
+                        : "text-emerald-600"
+                    }`}
+                    data-testid="text-actual-total"
+                  >
+                    {varianceData ? formatCurrency(varianceData.actual_total) : "—"}
+                  </p>
+                </div>
+                {varianceData && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Status:{" "}
+                    <span
+                      className={
+                        varianceData.status === "Favorable"
+                          ? "text-emerald-600 font-medium"
+                          : "text-destructive font-medium"
+                      }
+                    >
+                      {varianceData.status}
+                    </span>
+                  </p>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+        </div>
+
         {/* Summary Cards */}
         <div className="grid gap-3 md:gap-6 grid-cols-1 sm:grid-cols-3">
           <Card className="bg-gradient-to-br from-chart-1/5 to-chart-1/10 shadow-lg">
@@ -1603,6 +1675,7 @@ export default function DFUR() {
               </p>
             </CardContent>
           </Card>
+
         </div>
 
         {/* Projects List */}

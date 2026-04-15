@@ -13,6 +13,8 @@ import {
   Download,
   FileText,
   File,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import {
@@ -102,7 +104,7 @@ type BackendInsertBudgetEntry = {
 
 /* -------------------- HELPERS -------------------- */
 
-async function apiFetch(endpoint: string, options: RequestInit = {}) {
+export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers: { "Content-Type": "application/json", ...options.headers },
@@ -755,6 +757,24 @@ export default function ABO() {
     refetchOnWindowFocus: true,
   });
 
+  const { data: varianceData, isLoading: isVarianceLoading } = useQuery({
+  queryKey: ["variance-data"],
+  queryFn: async () => {
+    const response = await apiFetch("/get-variance-data");
+    return response.data as {
+      actual_total: string;
+      budget_total: string;
+      collections_total: string;
+      disbursement_total: string;
+      status: string;
+      variance: string;
+    };
+  },
+  staleTime: 0,
+  refetchOnMount: "always",
+  refetchOnWindowFocus: true,
+});
+
   // Always use the first entry's id as the stable anchor for the
   // single page-level validation document. The backend stays unchanged —
   // upload/view always targets this one row id regardless of pagination.
@@ -946,6 +966,8 @@ export default function ABO() {
         </div>
 
         {/* Summary Card */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Existing card */}
         <Card className="bg-gradient-to-br from-chart-1/5 to-chart-1/10 shadow-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm md:text-base font-medium text-muted-foreground">
@@ -953,14 +975,60 @@ export default function ABO() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p
-              className="text-2xl md:text-3xl font-bold text-chart-1"
-              data-testid="text-total-allocated"
-            >
+            <p className="text-2xl md:text-3xl font-bold text-chart-1" data-testid="text-total-allocated">
               {formatCurrency(totalAllocated.toString())}
             </p>
           </CardContent>
         </Card>
+
+        {/* New variance card */}
+        <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 shadow-lg">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm md:text-base font-medium text-muted-foreground">
+              Actual Total
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isVarianceLoading ? (
+              <div className="h-9 w-40 bg-muted rounded animate-pulse" />
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  {varianceData && parseFloat(varianceData.actual_total) < 0 ? (
+                    <TrendingDown className="h-6 w-6 text-destructive" />
+                  ) : (
+                    <TrendingUp className="h-6 w-6 text-emerald-600" />
+                  )}
+                  <p
+                    className={`text-2xl md:text-3xl font-bold ${
+                      varianceData && parseFloat(varianceData.actual_total) < 0
+                        ? "text-destructive"
+                        : "text-emerald-600"
+                    }`}
+                    data-testid="text-actual-total"
+                  >
+                    {varianceData ? formatCurrency(varianceData.actual_total) : "—"}
+                  </p>
+                </div>
+                {varianceData && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Status:{" "}
+                    <span
+                      className={
+                        varianceData.status === "Favorable"
+                          ? "text-emerald-600 font-medium"
+                          : "text-destructive font-medium"
+                      }
+                    >
+                      {varianceData.status}
+                    </span>
+                  </p>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
         {/* Budget Entries */}
         <Card className="border-none p-0">
