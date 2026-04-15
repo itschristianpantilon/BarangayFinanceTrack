@@ -1572,9 +1572,9 @@ export default function DFUR() {
           </div>
         </div>
 
-        <div>
+        <div className="grid grid-cols-2 gap-4">
           
-                  {/* New variance card */}
+        {/* New variance card */}
         <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 shadow-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm md:text-base font-medium text-muted-foreground">
@@ -1621,6 +1621,56 @@ export default function DFUR() {
             )}
           </CardContent>
         </Card>
+
+        <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 shadow-lg">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm md:text-base font-medium text-muted-foreground">
+              Variance
+            </CardTitle>
+          </CardHeader>
+
+          {/* Variance */}
+          <CardContent>
+            {isVarianceLoading ? (
+              <div className="h-9 w-40 bg-muted rounded animate-pulse" />
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  {varianceData && parseFloat(varianceData.variance) < 0 ? (
+                    <TrendingDown className="h-6 w-6 text-destructive" />
+                  ) : (
+                    <TrendingUp className="h-6 w-6 text-emerald-600" />
+                  )}
+                  <p
+                    className={`text-2xl md:text-3xl font-bold ${
+                      varianceData && parseFloat(varianceData.variance) < 0
+                        ? "text-destructive"
+                        : "text-emerald-600"
+                    }`}
+                    data-testid="text-actual-total"
+                  >
+                    {varianceData ? formatCurrency(varianceData.variance) : "—"}
+                  </p>
+                </div>
+                {varianceData && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Status:{" "}
+                    <span
+                      className={
+                        varianceData.status === "Favorable"
+                          ? "text-emerald-600 font-medium"
+                          : "text-destructive font-medium"
+                      }
+                    >
+                      {varianceData.status}
+                    </span>
+                  </p>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+
         </div>
 
         {/* Summary Cards */}
