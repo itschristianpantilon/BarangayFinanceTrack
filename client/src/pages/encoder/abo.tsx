@@ -84,6 +84,7 @@ type BackendBudgetEntry = {
   remarks?: string;
   allocation_id: number;
   created_by: number;
+  program: string;
 };
 
 type BackendInsertBudgetEntry = {
@@ -100,6 +101,7 @@ type BackendInsertBudgetEntry = {
   program_description?: string;
   remarks?: string;
   allocation_id: number;
+  program: string;
 };
 
 /* -------------------- HELPERS -------------------- */
@@ -130,6 +132,8 @@ function backendToFrontend(backendEntry: BackendBudgetEntry): BudgetEntry {
     expenditureProgram: backendEntry.expenditure_program,
     programDescription: backendEntry.program_description,
     remarks: backendEntry.remarks,
+    program: backendEntry.program,
+
   };
 }
 
@@ -153,6 +157,7 @@ function frontendToBackend(
     program_description: frontendEntry.programDescription || "",
     remarks: frontendEntry.remarks || "",
     allocation_id: allocationId,
+    program: frontendEntry.program,
   };
   if (entryId) return { ...backendData, id: entryId };
   return backendData;

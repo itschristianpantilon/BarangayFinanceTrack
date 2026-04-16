@@ -69,10 +69,7 @@ export default function ViewerDashboard() {
           currentYear={currentYear}
         />
 
-        <RevenueExpenditure
-          collectionsPieData={collectionsPieData}
-          disbursementsPieData={disbursementsPieData}
-        />
+        <RevenueExpenditure />
 
         <TransactionRecords
           collections={collections}

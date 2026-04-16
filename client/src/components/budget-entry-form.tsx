@@ -30,7 +30,7 @@ export type BudgetEntry = {
   id: string;
   transactionId: string;
   transactionDate: string;
-  programType: string; // "receipts" | "expenditure"
+  program: string; // "receipts_program" | "expenditure_program"
   expenditureProgram: string;
   category: string;
   subcategory: string;
@@ -199,11 +199,24 @@ const FUND_SOURCES = [
   "20% Development Fund",
 ];
 
+// Maps the UI selector value → API `program` field value
+const PROGRAM_TYPE_MAP: Record<string, string> = {
+  receipts: "receipts_program",
+  expenditure: "expenditure_program",
+};
+
+// Reverse map for populating the selector from a saved entry
+const PROGRAM_TYPE_REVERSE_MAP: Record<string, string> = {
+  receipts_program: "receipts",
+  expenditure_program: "expenditure",
+};
+
 const insertBudgetEntrySchema = z.object({
   transactionId: z.string().min(1, "Transaction ID is required"),
   transactionDate: z.string().min(1, "Transaction date is required"),
 
-  programType: z.string().min(1, "Program type is required"),
+  // Internal UI value: "receipts" | "expenditure"
+  program: z.string().min(1, "Program type is required"),
   expenditureProgram: z.string().min(1, "Expenditure program is required"),
   category: z.string().min(1, "Category is required"),
   subcategory: z.string().min(1, "Subcategory is required"),
@@ -271,7 +284,7 @@ export function BudgetEntryForm({
     defaultValues: {
       transactionId: "",
       transactionDate: "",
-      programType: "",
+      program: "",
       expenditureProgram: "",
       category: "",
       subcategory: "",
@@ -290,7 +303,7 @@ export function BudgetEntryForm({
         transactionId: transactionIdData?.transactionId || "",
         dvNumber: transactionIdData?.dvNumber || "",
         transactionDate: "",
-        programType: "",
+        program: "",
         expenditureProgram: "",
         category: "",
         subcategory: "",
@@ -301,10 +314,14 @@ export function BudgetEntryForm({
         remarks: "",
       });
     } else if (mode === "edit" && entry) {
+      // Convert stored API value (e.g. "receipts_program") → UI selector value (e.g. "receipts")
+      const uiProgram =
+        PROGRAM_TYPE_REVERSE_MAP[entry.program] || entry.program;
+
       form.reset({
         transactionId: entry.transactionId,
         transactionDate: toDateInputValue(entry.transactionDate),
-        programType: entry.programType || "",
+        program: uiProgram,
         expenditureProgram: entry.expenditureProgram,
         category: entry.category,
         subcategory: entry.subcategory,
@@ -316,7 +333,7 @@ export function BudgetEntryForm({
         remarks: entry.remarks || "",
       });
     }
-  }, [mode, entry, transactionIdData, form]);
+ }, [mode, entry, form]);
 
   useEffect(() => {
     if (mode === "create" && transactionIdData) {
@@ -325,20 +342,29 @@ export function BudgetEntryForm({
     }
   }, [transactionIdData, mode, form]);
 
-  const selectedProgramType = form.watch("programType");
+  const selectedProgram = form.watch("program");
   const selectedCategory = form.watch("category");
 
   // Determine which program list to use based on selected type
   const activeProgramList =
-    selectedProgramType === "receipts"
+    selectedProgram === "receipts"
       ? RECEIPTS_PROGRAMS
-      : selectedProgramType === "expenditure"
+      : selectedProgram === "expenditure"
         ? EXPENDITURE_PROGRAMS
         : [];
 
+  // Intercept submit to remap programType → API `program` value before calling onSubmit
+  const handleSubmit = (data: InsertBudgetEntry) => {
+    onSubmit({
+      ...data,
+      // Remap "receipts" → "receipts_program", "expenditure" → "expenditure_program"
+      program: PROGRAM_TYPE_MAP[data.program] ?? data.program,
+    });
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="transactionId"
@@ -374,10 +400,10 @@ export function BudgetEntryForm({
         {/* ── Program Type selector ── */}
         <FormField
           control={form.control}
-          name="programType"
+          name="program"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Program Type</FormLabel>
+              <FormLabel>Program</FormLabel>
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
@@ -390,7 +416,7 @@ export function BudgetEntryForm({
               >
                 <FormControl>
                   <SelectTrigger data-testid="select-program-type">
-                    <SelectValue placeholder="Select program type" />
+                    <SelectValue placeholder="Select program" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -399,19 +425,20 @@ export function BudgetEntryForm({
                 </SelectContent>
               </Select>
               <FormMessage />
+
             </FormItem>
           )}
         />
 
         {/* ── Category – shown only after program type is selected ── */}
-        {selectedProgramType && (
+        {selectedProgram && (
           <FormField
             control={form.control}
             name="category"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {selectedProgramType === "receipts"
+                  {selectedProgram === "receipts"
                     ? "Receipts Program Category"
                     : "Expenditure Program Category"}
                 </FormLabel>
@@ -461,7 +488,7 @@ export function BudgetEntryForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {selectedProgramType === "receipts"
+                  {selectedProgram === "receipts"
                     ? "Receipts Program Subcategory"
                     : "Expenditure Program Subcategory"}
                 </FormLabel>
