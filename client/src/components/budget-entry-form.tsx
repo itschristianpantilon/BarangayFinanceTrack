@@ -30,6 +30,7 @@ export type BudgetEntry = {
   id: string;
   transactionId: string;
   transactionDate: string;
+  programType: string; // "receipts" | "expenditure"
   expenditureProgram: string;
   category: string;
   subcategory: string;
@@ -43,7 +44,56 @@ export type BudgetEntry = {
 
 export type InsertBudgetEntry = Omit<BudgetEntry, "id">;
 
+// ─── Receipts Program ────────────────────────────────────────────────────────
+const RECEIPTS_PROGRAMS = [
+  {
+    category: "A. Share from Local Taxes",
+    subcategories: [
+      "Share from Real Property Tax",
+      "Tax on Sand, Gravel and Other Quarry Resources",
+      "Other Taxes (Community Tax / CTC)",
+    ],
+  },
+  {
+    category: "B. Share from National Taxes",
+    subcategories: [
+      "Internal Revenue Allotment (IRA) / National Tax Allotment",
+      "Share from National Wealth",
+      "Tobacco Excise Tax (RA 7171 / 8240)",
+    ],
+  },
+  {
+    category: "C. Assistance and Subsidy",
+    subcategories: [
+      "Subsidy from LGUs",
+      "Subsidy from National Government",
+      "Subsidy from NGOs / Grants / Donations",
+    ],
+  },
+  {
+    category: "D. Service and Business Income",
+    subcategories: [
+      "Clearance and Certification Fees",
+      "Barangay Clearance Fees",
+      "Barangay Business Clearance",
+      "Barangay Residency",
+      "K.P. Filing Fees",
+      "Other Service Income",
+    ],
+  },
+  {
+    category: "E. Non-Income Receipts",
+    subcategories: [
+      "Refunds / Reimbursements",
+      "Sale of Property or Equipment",
+      "Interest Income / Dividend",
+      "Loans / Borrowings Proceeds",
+      "Fund Raising Proceeds for Specific/Temporary Purposes",
+    ],
+  },
+];
 
+// ─── Expenditure Program ─────────────────────────────────────────────────────
 const EXPENDITURE_PROGRAMS = [
   {
     category: "A. Personal Services",
@@ -153,6 +203,7 @@ const insertBudgetEntrySchema = z.object({
   transactionId: z.string().min(1, "Transaction ID is required"),
   transactionDate: z.string().min(1, "Transaction date is required"),
 
+  programType: z.string().min(1, "Program type is required"),
   expenditureProgram: z.string().min(1, "Expenditure program is required"),
   category: z.string().min(1, "Category is required"),
   subcategory: z.string().min(1, "Subcategory is required"),
@@ -187,43 +238,40 @@ export function BudgetEntryForm({
   isPending,
   onCancel,
 }: BudgetEntryFormProps) {
-const { data: transactionIdData } = useQuery<{
-  transactionId: string;
-  dvNumber: string;
-}>({
-  queryKey: ["budget-entries-generate-id"],
-  queryFn: async () => {
-    const { data, error } = await apiCall<{
-      transaction_id: string;
-      div_number: number;
-    }>(api.budgetEntries.generateId);
+  const { data: transactionIdData } = useQuery<{
+    transactionId: string;
+    dvNumber: string;
+  }>({
+    queryKey: ["budget-entries-generate-id"],
+    queryFn: async () => {
+      const { data, error } = await apiCall<{
+        transaction_id: string;
+        div_number: number;
+      }>(api.budgetEntries.generateId);
 
-    if (error) throw new Error(error);
+      if (error) throw new Error(error);
 
-    return {
-      transactionId: data.transaction_id,
-      dvNumber: String(data.div_number), // ensure string for form
-    };
-  },
-  enabled: mode === "create",
-});
+      return {
+        transactionId: data.transaction_id,
+        dvNumber: String(data.div_number),
+      };
+    },
+    enabled: mode === "create",
+  });
 
-const toDateInputValue = (dateString?: string) => {
-  if (!dateString) return "";
-
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "";
-
-  return date.toISOString().split("T")[0]; // yyyy-MM-dd
-};
-
-
+  const toDateInputValue = (dateString?: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    return date.toISOString().split("T")[0];
+  };
 
   const form = useForm<InsertBudgetEntry>({
     resolver: zodResolver(insertBudgetEntrySchema),
     defaultValues: {
       transactionId: "",
       transactionDate: "",
+      programType: "",
       expenditureProgram: "",
       category: "",
       subcategory: "",
@@ -236,50 +284,57 @@ const toDateInputValue = (dateString?: string) => {
     },
   });
 
-  // Reset form when mode changes or entry changes
-useEffect(() => {
-  if (mode === "create") {
-    form.reset({
-      transactionId: transactionIdData?.transactionId || "",
-      dvNumber: transactionIdData?.dvNumber || "",
-      transactionDate: "",
-      expenditureProgram: "",
-      category: "",
-      subcategory: "",
-      programDescription: "",
-      fundSource: "",
-      amount: "",
-      payee: "",
-      remarks: "",
-    });
-  } else if (mode === "edit" && entry) {
-    form.reset({
-      transactionId: entry.transactionId,
-      transactionDate: toDateInputValue(entry.transactionDate),
-      expenditureProgram: entry.expenditureProgram,
-      category: entry.category,
-      subcategory: entry.subcategory,
-      programDescription: entry.programDescription || "",
-      fundSource: entry.fundSource,
-      amount: entry.amount,
-      payee: entry.payee,
-      dvNumber: entry.dvNumber,
-      remarks: entry.remarks || "",
-    });
-  }
-}, [mode, entry, transactionIdData, form]);
+  useEffect(() => {
+    if (mode === "create") {
+      form.reset({
+        transactionId: transactionIdData?.transactionId || "",
+        dvNumber: transactionIdData?.dvNumber || "",
+        transactionDate: "",
+        programType: "",
+        expenditureProgram: "",
+        category: "",
+        subcategory: "",
+        programDescription: "",
+        fundSource: "",
+        amount: "",
+        payee: "",
+        remarks: "",
+      });
+    } else if (mode === "edit" && entry) {
+      form.reset({
+        transactionId: entry.transactionId,
+        transactionDate: toDateInputValue(entry.transactionDate),
+        programType: entry.programType || "",
+        expenditureProgram: entry.expenditureProgram,
+        category: entry.category,
+        subcategory: entry.subcategory,
+        programDescription: entry.programDescription || "",
+        fundSource: entry.fundSource,
+        amount: entry.amount,
+        payee: entry.payee,
+        dvNumber: entry.dvNumber,
+        remarks: entry.remarks || "",
+      });
+    }
+  }, [mode, entry, transactionIdData, form]);
 
+  useEffect(() => {
+    if (mode === "create" && transactionIdData) {
+      form.setValue("transactionId", transactionIdData.transactionId);
+      form.setValue("dvNumber", transactionIdData.dvNumber);
+    }
+  }, [transactionIdData, mode, form]);
 
-  // Update transaction ID when it's generated
-useEffect(() => {
-  if (mode === "create" && transactionIdData) {
-    form.setValue("transactionId", transactionIdData.transactionId);
-    form.setValue("dvNumber", transactionIdData.dvNumber);
-  }
-}, [transactionIdData, mode, form]);
-
-
+  const selectedProgramType = form.watch("programType");
   const selectedCategory = form.watch("category");
+
+  // Determine which program list to use based on selected type
+  const activeProgramList =
+    selectedProgramType === "receipts"
+      ? RECEIPTS_PROGRAMS
+      : selectedProgramType === "expenditure"
+        ? EXPENDITURE_PROGRAMS
+        : [];
 
   return (
     <Form {...form}>
@@ -316,39 +371,31 @@ useEffect(() => {
           )}
         />
 
+        {/* ── Program Type selector ── */}
         <FormField
           control={form.control}
-          name="category"
+          name="programType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Expenditure Program Category</FormLabel>
+              <FormLabel>Program Type</FormLabel>
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
+                  // Reset downstream fields when type changes
+                  form.setValue("category", "");
                   form.setValue("subcategory", "");
-                  const selected = EXPENDITURE_PROGRAMS.find(
-                    (p) => p.category === value,
-                  );
-                  if (selected && selected.subcategories.length > 0) {
-                    form.setValue(
-                      "expenditureProgram",
-                      selected.subcategories[0],
-                    );
-                  }
+                  form.setValue("expenditureProgram", "");
                 }}
                 value={field.value}
               >
                 <FormControl>
-                  <SelectTrigger data-testid="select-category">
-                    <SelectValue placeholder="Select category" />
+                  <SelectTrigger data-testid="select-program-type">
+                    <SelectValue placeholder="Select program type" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {EXPENDITURE_PROGRAMS.map((program) => (
-                    <SelectItem key={program.category} value={program.category}>
-                      {program.category}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="receipts">Receipts Program</SelectItem>
+                  <SelectItem value="expenditure">Expenditure Program</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -356,13 +403,68 @@ useEffect(() => {
           )}
         />
 
+        {/* ── Category – shown only after program type is selected ── */}
+        {selectedProgramType && (
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {selectedProgramType === "receipts"
+                    ? "Receipts Program Category"
+                    : "Expenditure Program Category"}
+                </FormLabel>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    form.setValue("subcategory", "");
+                    const selected = activeProgramList.find(
+                      (p) => p.category === value,
+                    );
+                    if (selected && selected.subcategories.length > 0) {
+                      form.setValue(
+                        "expenditureProgram",
+                        selected.subcategories[0],
+                      );
+                    }
+                  }}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger data-testid="select-category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {activeProgramList.map((program) => (
+                      <SelectItem
+                        key={program.category}
+                        value={program.category}
+                      >
+                        {program.category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* ── Subcategory ── */}
         {selectedCategory && (
           <FormField
             control={form.control}
             name="subcategory"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Expenditure Program Subcategory</FormLabel>
+                <FormLabel>
+                  {selectedProgramType === "receipts"
+                    ? "Receipts Program Subcategory"
+                    : "Expenditure Program Subcategory"}
+                </FormLabel>
                 <Select
                   onValueChange={(value) => {
                     field.onChange(value);
@@ -376,13 +478,13 @@ useEffect(() => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {EXPENDITURE_PROGRAMS.find(
-                      (p) => p.category === selectedCategory,
-                    )?.subcategories.map((sub) => (
-                      <SelectItem key={sub} value={sub}>
-                        {sub}
-                      </SelectItem>
-                    ))}
+                    {activeProgramList
+                      .find((p) => p.category === selectedCategory)
+                      ?.subcategories.map((sub) => (
+                        <SelectItem key={sub} value={sub}>
+                          {sub}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -483,17 +585,12 @@ useEffect(() => {
             <FormItem>
               <FormLabel>DV Number</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  disabled
-                  data-testid="input-dv-number"
-                />
+                <Input {...field} disabled data-testid="input-dv-number" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
 
         <FormField
           control={form.control}
