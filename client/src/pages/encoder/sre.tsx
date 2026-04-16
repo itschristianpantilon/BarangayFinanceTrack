@@ -242,18 +242,45 @@ function FileViewerModal({
   const isPdf = PDF_EXTS.includes(ext);
   const isOffice = OFFICE_EXTS.includes(ext);
 
+  console.log("File Url", fileUrl)
+
   const renderBody = () => {
-    if (isImage) {
-      return (
-        <div className="flex items-center justify-center w-full bg-muted/30 rounded-lg overflow-hidden min-h-[300px]">
-          <img
-            src={fileUrl}
-            alt={fileName}
-            className="max-w-full max-h-[65vh] object-contain rounded"
-          />
-        </div>
-      );
-    }
+if (isImage) {
+  return (
+    <div className="flex items-center justify-center w-full bg-muted/30 rounded-lg overflow-hidden min-h-[300px]">
+      <img
+        src={fileUrl}
+        alt={fileName}
+        className="max-w-full max-h-[65vh] object-contain rounded"
+        crossOrigin="anonymous"
+        onError={(e) => {
+          // Fallback: open in new tab if image fails to load inline
+          const target = e.currentTarget;
+          target.style.display = "none";
+          const fallback = target.nextElementSibling as HTMLElement;
+          if (fallback) fallback.style.display = "flex";
+        }}
+      />
+      <div
+        style={{ display: "none" }}
+        className="flex-col items-center justify-center gap-4 py-12 text-center"
+      >
+        <p className="text-sm text-muted-foreground">
+          Image could not be displayed inline.
+        </p>
+        <a
+          href={fileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-input bg-background hover:bg-muted transition-colors"
+        >
+          <Eye className="h-4 w-4" />
+          Open image in new tab
+        </a>
+      </div>
+    </div>
+  );
+}
     if (isPdf) {
       return (
         <div
@@ -315,16 +342,6 @@ function FileViewerModal({
               <p className="text-xs text-muted-foreground truncate">{entryLabel}</p>
             )}
           </div>
-          <a
-            href={fileUrl}
-            download={fileName}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border border-input bg-background hover:bg-muted transition-colors"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Download</span>
-          </a>
         </div>
         <div className="flex-1 overflow-auto p-5">{renderBody()}</div>
       </DialogContent>
@@ -435,6 +452,7 @@ function DisbursementDocButton({ disbursementId }: { disbursementId: string }) {
 
   const handleViewDoc = async () => {
     setIsLoading(true);
+    console.log("Disbursement ID: ", disbursementId)
     try {
       const response = await fetch(`${API_BASE_URL}/get-disbursement-docs/${disbursementId}`);
       if (!response.ok) throw new Error("No document found");
