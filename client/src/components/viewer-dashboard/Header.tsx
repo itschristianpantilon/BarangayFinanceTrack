@@ -1,12 +1,20 @@
 import { LogIn } from "lucide-react";
 import { useLocation } from "wouter";
+import logoPath from "../../assets/san_agustin.jpg";
 
 export default function Header() {
   const [, navigate] = useLocation();
 
   return (
-    <header className="fixed w-full h-20 z-10 backdrop-blur-md bg-white/90 flex items-center justify-between px-6 sm:px-12 lg:px-20 shadow">
-      <h1 className="text-xl sm:text-2xl font-black gradient-text">FundSight</h1>
+    <header className="fixed w-full h-20 z-10 backdrop-blur-md bg-white/40 flex items-center justify-between px-6 sm:px-12 lg:px-20 shadow">
+      {/* <h1 className="text-xl sm:text-2xl font-black gradient-text">FundSight</h1> */}
+      <div>
+        <img 
+            src={logoPath} 
+            alt="san_agustin_logo"
+            className="w-16 h-16"
+            />
+      </div>
       <button
         onClick={() => navigate("/login")}
         className="group px-5 bg-blue-600 sm:px-7 py-1.5 sm:py-2 rounded-lg 
