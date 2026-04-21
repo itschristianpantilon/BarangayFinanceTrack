@@ -456,7 +456,7 @@ export default function ApproverDFUR() {
         >
           <CheckCircle2 className="h-4 w-4 mr-1" /> Approve
         </Button>
-        <Button
+        {/* <Button
           size="sm" variant="outline"
           className="flex-1 text-red-600 border-red-300 hover:bg-red-50 touch-manipulation"
           onClick={() => { setSelectedProject(project); setReviewAction("flagged"); }}
@@ -464,7 +464,7 @@ export default function ApproverDFUR() {
           data-testid={`button-flag-${project.id}`}
         >
           <Flag className="h-4 w-4 mr-1" /> Flag
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
@@ -614,7 +614,7 @@ export default function ApproverDFUR() {
                                 >
                                   <CheckCircle2 className="h-4 w-4 mr-1" /> Approve
                                 </Button>
-                                <Button
+                                {/* <Button
                                   size="sm" variant="outline"
                                   className="text-red-600 border-red-300 hover:bg-red-50"
                                   onClick={() => { setSelectedProject(project); setReviewAction("flagged"); }}
@@ -622,7 +622,7 @@ export default function ApproverDFUR() {
                                   data-testid={`button-flag-${project.id}`}
                                 >
                                   <Flag className="h-4 w-4 mr-1" /> Flag
-                                </Button>
+                                </Button> */}
                               </div>
                             </TableCell>
                           </TableRow>

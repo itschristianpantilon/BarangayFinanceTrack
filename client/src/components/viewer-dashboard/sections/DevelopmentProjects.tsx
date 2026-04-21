@@ -23,16 +23,21 @@ type DevelopmentProjectsProps = {
   isLoadingDfurProjects: boolean;
 };
 
-const statusColor = (status?: "pending" | "approved" | "flagged") => {
-  if (status === "approved") return "bg-emerald-100 text-emerald-700 border-emerald-200";
-  if (status === "flagged") return "bg-red-100 text-red-700 border-red-200";
+const statusColor = (status?: "planned" | "in_progress" | "completed" | "on_hold" | "cancelled") => {
+  if (status === "planned") return "bg-blue-100 text-blue-700 border-blue-200";
+  if (status === "in_progress") return "bg-yellow-100 text-yellow-700 border-yellow-200";
+  if (status === "completed") return "bg-emerald-100 text-emerald-700 border-emerald-200";
+  if (status === "on_hold") return "bg-gray-100 text-gray-700 border-gray-200";
+  if (status === "cancelled") return "bg-red-100 text-red-700 border-red-200";
   return "bg-slate-100 text-slate-700 border-slate-200";
 };
 
-const statusLabel = (status?: "pending" | "approved" | "flagged") => {
-  if (status === "approved") return "Approved";
-  if (status === "flagged") return "Flagged";
-  return "Pending";
+const statusLabel = (status: "planned" | "in_progress" | "completed" | "on_hold" | "cancelled") => {
+  if (status === "planned") return "Planned";
+  if (status === "in_progress") return "In Progress";
+  if (status === "completed") return "Completed";
+  if (status === "on_hold") return "On Hold";
+  if (status === "cancelled") return "Cancelled";
 };
 
 export default function DevelopmentProjects({
@@ -42,6 +47,8 @@ export default function DevelopmentProjects({
   totalIncurredCost,
   isLoadingDfurProjects,
 }: DevelopmentProjectsProps) {
+
+  console.log("DFUR Projects:", dfurProjects);
   return (
     <section id="projects">
       <SectionHeader
@@ -115,7 +122,7 @@ export default function DevelopmentProjects({
       </div>
 
       {/* Overview Charts */}
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <div className="grid md:grid-cols-1 gap-6 mb-8">
         {/* Status Pie */}
         <div className="glass-card rounded-3xl p-8 shadow-xl">
           <div className="flex items-center justify-between mb-6">
@@ -175,7 +182,7 @@ export default function DevelopmentProjects({
         </div>
 
         {/* Recent Projects Card List */}
-        <div className="glass-card rounded-3xl p-8 shadow-xl">
+        {/* <div className="glass-card rounded-3xl p-8 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-xl font-bold text-slate-900 mb-1">Recent Projects</h3>
@@ -221,7 +228,7 @@ export default function DevelopmentProjects({
               <div className="text-center py-12 text-slate-500">No projects available</div>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* All Projects Table */}
@@ -283,8 +290,8 @@ export default function DevelopmentProjects({
                       {formatCurrency(safeParseAmount(project.total_cost_incurred))}
                     </td>
                     <td className="text-center py-4 px-6">
-                      <Badge className={statusColor(project.review_status)}>
-                        {statusLabel(project.review_status)}
+                      <Badge className={statusColor(project.status)}>
+                        {statusLabel(project.status)}
                       </Badge>
                     </td>
                   </tr>

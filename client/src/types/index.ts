@@ -107,10 +107,10 @@ export type DfurProject = {
   total_cost_incurred: string;
   date_started: string | null;
   target_completion_date: string | null;
-  status: string;
+  status: "planned" | "in_progress" | "completed" | "on_hold" | "cancelled";
   no_extensions: number;
   remarks?: string;
-  review_status?: "pending" | "approved" | "flagged";
+  review_status?: string | undefined;
   review_comment?: string;
   is_flagged?: boolean;
 };

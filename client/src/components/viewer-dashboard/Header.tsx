@@ -12,7 +12,7 @@ export default function Header() {
         <img 
             src={logoPath} 
             alt="san_agustin_logo"
-            className="w-16 h-16"
+            className="w-16 h-16 rounded-full border-2 border-gray-300 shadow-md"
             />
       </div>
       <button

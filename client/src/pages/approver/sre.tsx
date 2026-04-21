@@ -548,12 +548,12 @@ export default function ApproverSRE() {
           data-testid={`button-approve-collection-${collection.id}`}>
           <CheckCircle2 className="h-4 w-4 mr-1" /> Approve
         </Button>
-        <Button size="sm" variant="outline" className="flex-1 text-red-600 border-red-300 hover:bg-red-50 touch-manipulation"
+        {/* <Button size="sm" variant="outline" className="flex-1 text-red-600 border-red-300 hover:bg-red-50 touch-manipulation"
           onClick={() => handleReviewClick(collection, "collection", "flagged")}
           data-testid={`button-flag-collection-${collection.id}`}
           disabled={isUserFlagged(collection.id, "collection")}>
           <Flag className="h-4 w-4 mr-1" /> Flag
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
@@ -599,12 +599,12 @@ export default function ApproverSRE() {
           data-testid={`button-approve-disbursement-${disbursement.id}`}>
           <CheckCircle2 className="h-4 w-4 mr-1" /> Approve
         </Button>
-        <Button size="sm" variant="outline" className="flex-1 text-red-600 border-red-300 hover:bg-red-50 touch-manipulation"
+        {/* <Button size="sm" variant="outline" className="flex-1 text-red-600 border-red-300 hover:bg-red-50 touch-manipulation"
           onClick={() => handleReviewClick(disbursement, "disbursement", "flagged")}
           data-testid={`button-flag-disbursement-${disbursement.id}`}
           disabled={isUserFlagged(disbursement.id, "disbursement")}>
           <Flag className="h-4 w-4 mr-1" /> Flag
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
@@ -702,12 +702,12 @@ export default function ApproverSRE() {
                                     data-testid={`button-approve-collection-${collection.id}`}>
                                     <CheckCircle2 className="h-4 w-4 mr-1" /> Approve
                                   </Button>
-                                  <Button size="sm" variant="outline" className="text-red-600 border-red-300 hover:bg-red-50"
+                                  {/* <Button size="sm" variant="outline" className="text-red-600 border-red-300 hover:bg-red-50"
                                     onClick={() => handleReviewClick(collection, "collection", "flagged")}
                                     data-testid={`button-flag-collection-${collection.id}`}
                                     disabled={isUserFlagged(collection.id, "collection")}>
                                     <Flag className="h-4 w-4 mr-1" /> Flag
-                                  </Button>
+                                  </Button> */}
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -794,12 +794,12 @@ export default function ApproverSRE() {
                                     data-testid={`button-approve-disbursement-${disbursement.id}`}>
                                     <CheckCircle2 className="h-4 w-4 mr-1" /> Approve
                                   </Button>
-                                  <Button size="sm" variant="outline" className="text-red-600 border-red-300 hover:bg-red-50"
+                                  {/* <Button size="sm" variant="outline" className="text-red-600 border-red-300 hover:bg-red-50"
                                     onClick={() => handleReviewClick(disbursement, "disbursement", "flagged")}
                                     data-testid={`button-flag-disbursement-${disbursement.id}`}
                                     disabled={isUserFlagged(disbursement.id, "disbursement")}>
                                     <Flag className="h-4 w-4 mr-1" /> Flag
-                                  </Button>
+                                  </Button> */}
                                 </div>
                               </TableCell>
                             </TableRow>

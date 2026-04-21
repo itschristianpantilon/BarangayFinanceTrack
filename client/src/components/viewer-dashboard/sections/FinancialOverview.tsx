@@ -143,7 +143,7 @@ export default function FinancialOverview({
       </div>
 
       {/* Budget Analysis Chart */}
-      <div className="glass-card rounded-3xl p-8 shadow-2xl">
+      {/* <div className="glass-card rounded-3xl p-8 shadow-2xl">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">
@@ -261,7 +261,7 @@ export default function FinancialOverview({
             </BarChart>
           </ResponsiveContainer>
         )}
-      </div>
+      </div> */}
     </section>
   );
 }

@@ -692,7 +692,7 @@ function EntryCard({
         )}
       </div>
       <div className="flex items-center justify-between text-xs text-muted-foreground gap-2">
-        <span className="truncate">{entry.payee}</span>
+        {/* <span className="truncate">{entry.payee}</span> */}
         <span className="flex-shrink-0">
           {safeFormatDate(entry.transactionDate)}
         </span>
@@ -970,57 +970,6 @@ export default function ABO() {
           </div>
         </div>
 
-        <div>
-            <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm md:text-base font-medium text-muted-foreground">
-                  Variance
-                </CardTitle>
-              </CardHeader>
-    
-              {/* Variance */}
-              <CardContent>
-                {isVarianceLoading ? (
-                  <div className="h-9 w-40 bg-muted rounded animate-pulse" />
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2">
-                      {varianceData && parseFloat(varianceData.variance) < 0 ? (
-                        <TrendingDown className="h-6 w-6 text-destructive" />
-                      ) : (
-                        <TrendingUp className="h-6 w-6 text-emerald-600" />
-                      )}
-                      <p
-                        className={`text-2xl md:text-3xl font-bold ${
-                          varianceData && parseFloat(varianceData.variance) < 0
-                            ? "text-destructive"
-                            : "text-emerald-600"
-                        }`}
-                        data-testid="text-actual-total"
-                      >
-                        {varianceData ? formatCurrency(varianceData.variance) : "—"}
-                      </p>
-                    </div>
-                    {varianceData && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Status:{" "}
-                        <span
-                          className={
-                            varianceData.status === "Favorable"
-                              ? "text-emerald-600 font-medium"
-                              : "text-destructive font-medium"
-                          }
-                        >
-                          {varianceData.status}
-                        </span>
-                      </p>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-        </div>
-
         {/* Summary Card */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Existing card */}
@@ -1153,8 +1102,8 @@ export default function ABO() {
                         <TableHead>Transaction ID</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Category</TableHead>
-                        <TableHead>Payee</TableHead>
-                        <TableHead>DV Number</TableHead>
+                        {/* <TableHead>Payee</TableHead> */}
+                        {/* <TableHead>DV Number</TableHead> */}
                         <TableHead className="text-right">Amount</TableHead>
                         <TableHead className="text-center">Actions</TableHead>
                       </TableRow>
@@ -1177,8 +1126,8 @@ export default function ABO() {
                               {entry.subcategory}
                             </div>
                           </TableCell>
-                          <TableCell>{entry.payee}</TableCell>
-                          <TableCell>{entry.dvNumber}</TableCell>
+                          {/* <TableCell>{entry.payee}</TableCell> */}
+                          {/* <TableCell>{entry.dvNumber}</TableCell> */}
                           <TableCell className="text-right font-medium">
                             {formatCurrency(entry.amount)}
                           </TableCell>
@@ -1211,7 +1160,7 @@ export default function ABO() {
                     <TableFooter>
                       <TableRow>
                         <TableCell
-                          colSpan={5}
+                          colSpan={3}
                           className="text-right font-semibold"
                         >
                           Total Budget Allocation:

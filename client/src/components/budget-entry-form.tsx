@@ -229,7 +229,7 @@ const insertBudgetEntrySchema = z.object({
     .string()
     .refine((val) => parseFloat(val) > 0, "Amount must be greater than 0"),
 
-  payee: z.string().min(1, "Payee is required"),
+  // payee: z.string().min(1, "Payee is required"),
   dvNumber: z.string().min(1, "DV number is required"),
 
   remarks: z.string().optional(),
@@ -587,7 +587,9 @@ export function BudgetEntryForm({
           )}
         />
 
-        <FormField
+
+      <div className="hidden">
+        {/* <FormField
           control={form.control}
           name="payee"
           render={({ field }) => (
@@ -603,8 +605,8 @@ export function BudgetEntryForm({
               <FormMessage />
             </FormItem>
           )}
-        />
-
+        /> */}
+        
         <FormField
           control={form.control}
           name="dvNumber"
@@ -618,6 +620,8 @@ export function BudgetEntryForm({
             </FormItem>
           )}
         />
+      
+      </div>
 
         <FormField
           control={form.control}
