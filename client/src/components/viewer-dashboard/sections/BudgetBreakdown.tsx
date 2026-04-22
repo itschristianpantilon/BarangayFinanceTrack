@@ -8,7 +8,7 @@ type AboBreakdownItem = {
   planned: number;
   actual: number;
   variance: number;
-  fundSource: string;
+  fund_source: string;
   is20Percent: boolean;
 };
 
@@ -23,6 +23,9 @@ export default function BudgetBreakdown({
   isLoadingBudgetEntries,
   currentYear,
 }: BudgetBreakdownProps) {
+
+  console.log("ABO DATA", aboBreakdownData)
+
   return (
     <section>
       <SectionHeader
@@ -65,7 +68,7 @@ export default function BudgetBreakdown({
               <thead className="bg-slate-50/80 backdrop-blur-sm border-b-2 border-slate-200">
                 <tr className="text-xs uppercase text-slate-600">
                   <th className="text-left py-5 px-6 font-bold">Expenditure Programme</th>
-                  <th className="text-left py-5 px-4 font-bold">Fund Source</th>
+                  {/* <th className="text-left py-5 px-4 font-bold">Fund Source</th> */}
                   <th className="text-right py-5 px-6 font-bold">ABO (Planned)</th>
                   <th className="text-right py-5 px-6 font-bold">SRE (Actual)</th>
                   <th className="text-right py-5 px-6 font-bold">Variance</th>
@@ -96,9 +99,9 @@ export default function BudgetBreakdown({
                           )}
                         </div>
                       </td>
-                      <td className="py-5 px-4 text-slate-600 text-xs whitespace-nowrap">
-                        {item.fundSource || "—"}
-                      </td>
+                      {/* <td className="py-5 px-4 text-slate-600 text-xs whitespace-nowrap">
+                        {item.fund_source || "—"}
+                      </td> */}
                       <td className="text-right py-5 px-6 text-slate-700 font-semibold">
                         {formatCurrency(item.planned)}
                       </td>

@@ -48,7 +48,6 @@ export default function DevelopmentProjects({
   isLoadingDfurProjects,
 }: DevelopmentProjectsProps) {
 
-  console.log("DFUR Projects:", dfurProjects);
   return (
     <section id="projects">
       <SectionHeader
