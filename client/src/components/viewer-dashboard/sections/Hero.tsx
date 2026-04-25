@@ -1,4 +1,5 @@
 import backgroundImage from "../../../assets/backgroundImage.jpg";
+import logoPath from "../../../assets/san_agustin.jpg";
 
 type HeroProps = {
   currentYear: number;
@@ -6,59 +7,44 @@ type HeroProps = {
 
 export default function Hero({ currentYear }: HeroProps) {
   return (
-    <div className="relative flex items-center justify-center min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 overflow-hidden">
+    <section 
+      id="hero"
+      className="relative w-full h-[45vh] sm:h-[50vh] flex items-center justify-center overflow-hidden">
 
-      {/* 🔹 TOP BACKGROUND IMAGE */}
+      {/* 🔹 BACKGROUND IMAGE */}
       <div
-        className="absolute top-14 left-0 w-full h-[35vh] bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${backgroundImage})` }}
       />
 
-      {/* 🔹 OVERLAY (LIGHT + DARK MODE) */}
-      <div className="absolute top-14 left-0 w-full h-[35vh] bg-black/40 dark:bg-black/60 backdrop-blur-[1px]" />
-
-      {/* 🔹 FADE INTO CONTENT (LIGHT + DARK) */}
-      <div className="absolute top-[35vh] left-0 w-full h-20 
-        bg-gradient-to-b from-transparent to-white 
-        dark:to-[hsl(var(--background))]" 
-      />
+      {/* 🔹 DARK OVERLAY + BLUR */}
+      <div className="absolute inset-0 bg-black/60" />
 
       {/* 🔹 CONTENT */}
-      <div className="relative text-center animate-fadeInUp mt-32 sm:mt-64">
+      <div className="relative text-center text-white px-4">
 
-        <h1 className="font-extrabold mb-4 sm:mb-6 leading-tight">
+        {/* LOGO */}
+        <div className="flex justify-center mb-4">
+          <div className="w-16 h-16 sm:w-28 sm:h-28 rounded-full bg-white/90 flex  items-center justify-center shadow-lg">
+            <img src={logoPath} alt="Logo" className="w-full h-full object-cover rounded-full" />
+          </div>
+        </div>
 
-          {/* Main Title */}
-          <span className="block text-slate-900 dark:text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-2">
-            Barangay San Agustin
-          </span>
-
-          {/* Gradient Title */}
-          <span className="text-transparent bg-clip-text 
-            bg-gradient-to-r from-blue-600 to-blue-400 
-            dark:from-blue-400 dark:to-purple-400
-            text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
-            FundSight System
-          </span>
-
+        {/* TITLE */}
+        <h1 className="text-2xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
+          Barangay San Agustin
         </h1>
 
-        {/* Description */}
-        <p className="text-sm sm:text-base md:text-lg lg:text-xl 
-          text-slate-600 dark:text-slate-300 
-          max-w-xl sm:max-w-2xl md:max-w-3xl mx-auto 
-          leading-relaxed font-medium px-2">
-          
-          Advancing transparency and good governance in Iba, Zambales through{" "}
-          
-          <span className="text-blue-600 dark:text-blue-400 font-semibold">
-            accurate reporting
-          </span>,
-          
-          real-time data access, and accountable financial management.
+        {/* SUBTITLE */}
+        <p className="mt-4 text-sm sm:text-base md:text-lg font-medium text-white">
+          FundSight System
         </p>
 
+        {/* LOCATION */}
+        <p className="text-xs sm:text-base text-gray-300 mt-1">
+          Iba, Zambales
+        </p>
       </div>
-    </div>
+    </section>
   );
 }

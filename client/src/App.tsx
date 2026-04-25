@@ -246,7 +246,7 @@ function MainApp() {
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex h-screen w-full">
         <div className="flex flex-col flex-1 overflow-hidden">
-          <main className="flex-1 overflow-auto">
+          <main id="scroll-container" className="flex-1 overflow-auto">
             <AppRoutes />
           </main>
         </div>

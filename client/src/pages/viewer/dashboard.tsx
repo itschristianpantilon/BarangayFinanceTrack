@@ -48,11 +48,16 @@ export default function ViewerDashboard() {
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
       `}</style>
 
-      <Header />
+       <Header />
 
-      <main className="max-w-7xl mx-auto px-6 py-16 space-y-12">
-        <Hero currentYear={currentYear} />
+      <main className="w-full relative pt-14 lg:pt-20">
+        <div className="w-full">
+          <Hero currentYear={currentYear} />
+        </div>
 
+
+        <div className="max-w-7xl mx-auto px-6 py-10 lg:py-16 space-y-10">
+          
         <FinancialOverview
           totalCollections={totalCollections}
           totalDisbursements={totalDisbursements}
@@ -91,6 +96,7 @@ export default function ViewerDashboard() {
           isLoadingComments={isLoadingComments}
           refetchComments={refetchComments}
         />
+        </div>
       </main>
 
       <Footer currentYear={currentYear} />
