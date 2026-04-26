@@ -73,7 +73,7 @@ export default function FinancialOverview({
           <div className="text-3xl font-bold text-slate-900 mb-1">
             {formatCurrencyCompact(totalCollections)}
           </div>
-          <div className="text-sm text-slate-600 font-medium">Total Income</div>
+          <div className="text-sm text-slate-600 font-medium">Total Income <p className="mt-1">(Kabuuang Kita)</p></div>
         </div>
 
         <div className="glass-card rounded-2xl p-6 border border-amber-200">
@@ -89,7 +89,7 @@ export default function FinancialOverview({
             {formatCurrencyCompact(totalDisbursements)}
           </div>
           <div className="text-sm text-slate-600 font-medium">
-            Total Expenses
+            Total Expenses <p className="mt-1">(Kabuuang Gastos)</p>
           </div>
         </div>
 
@@ -105,13 +105,14 @@ export default function FinancialOverview({
               )}
             </div>
             <Badge
-              className={`border-0 ${
+              className={`border-0 text-center ${
                 surplus >= 0
                   ? "bg-emerald-100 text-emerald-700"
                   : "bg-red-100 text-red-700"
               }`}
             >
-              {surplus >= 0 ? "Surplus" : "Deficit"}
+              {surplus >= 0 ? "Surplus" : "Deficit"}{" "} <br />
+              {surplus >= 0 ? "(Sobra)" : "(Kulangan)"}
             </Badge>
           </div>
           <div
@@ -121,7 +122,7 @@ export default function FinancialOverview({
           >
             {formatCurrencyCompact(Math.abs(surplus))}
           </div>
-          <div className="text-sm text-slate-600 font-medium">Net Position</div>
+          <div className="text-sm text-slate-600 font-medium">Net Position <p className="mt-1">(Natitirang Pondo)</p></div>
         </div>
 
         <div className="glass-card rounded-2xl p-6 border border-violet-200">
@@ -138,6 +139,7 @@ export default function FinancialOverview({
           </div>
           <div className="text-sm text-slate-600 font-medium">
             Utilization Rate
+            <p className="mt-1">(Porsyento ng Paggamit)</p>
           </div>
         </div>
       </div>
