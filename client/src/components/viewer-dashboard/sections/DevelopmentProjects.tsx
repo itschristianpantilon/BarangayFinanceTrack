@@ -5,11 +5,10 @@ import {
   CheckCircle2,
   Activity,
   PieChart as PieChartIcon,
-  Target,
 } from "lucide-react";
 import SectionHeader from "../ui/SectionHeader";
 import LoadingSpinner from "../ui/LoadingSpinner";
-import { formatCurrency, formatCurrencyCompact, formatDate, safeParseAmount } from "../../../utils/formatters";
+import { formatCurrency, formatCurrencyCompact, safeParseAmount } from "../../../utils/formatters";
 import { COLORS } from "../../../utils/constants";
 import type { DfurProject } from "../../../types";
 
@@ -32,12 +31,25 @@ const statusColor = (status?: "planned" | "in_progress" | "completed" | "on_hold
   return "bg-slate-100 text-slate-700 border-slate-200";
 };
 
-const statusLabel = (status: "planned" | "in_progress" | "completed" | "on_hold" | "cancelled") => {
+const statusLabel = (status?: "planned" | "in_progress" | "completed" | "on_hold" | "cancelled") => {
   if (status === "planned") return "Planned";
   if (status === "in_progress") return "In Progress";
   if (status === "completed") return "Completed";
   if (status === "on_hold") return "On Hold";
   if (status === "cancelled") return "Cancelled";
+  return "Unknown";
+};
+
+const utilizationBarColor = (pct: number) => {
+  if (pct >= 90) return "from-emerald-500 to-emerald-600";
+  if (pct >= 50) return "from-amber-500 to-amber-600";
+  return "from-blue-400 to-blue-500";
+};
+
+const utilizationBadgeColor = (pct: number) => {
+  if (pct >= 90) return "bg-emerald-100 text-emerald-700";
+  if (pct >= 50) return "bg-amber-100 text-amber-700";
+  return "bg-blue-100 text-blue-700";
 };
 
 export default function DevelopmentProjects({
@@ -47,7 +59,6 @@ export default function DevelopmentProjects({
   totalIncurredCost,
   isLoadingDfurProjects,
 }: DevelopmentProjectsProps) {
-
   return (
     <section id="projects">
       <SectionHeader
@@ -122,7 +133,6 @@ export default function DevelopmentProjects({
 
       {/* Overview Charts */}
       <div className="grid md:grid-cols-1 gap-6 mb-8">
-        {/* Status Pie */}
         <div className="glass-card rounded-3xl p-8 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -179,71 +189,88 @@ export default function DevelopmentProjects({
             </div>
           )}
         </div>
-
-        {/* Recent Projects Card List */}
-        {/* <div className="glass-card rounded-3xl p-8 shadow-xl">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-1">Recent Projects</h3>
-              <p className="text-sm text-slate-600">Latest initiatives</p>
-            </div>
-            <Target className="w-6 h-6 text-blue-600" />
-          </div>
-          <div className="space-y-4 max-h-[320px] overflow-y-auto custom-scrollbar pr-2">
-            {dfurProjects && dfurProjects.length > 0 ? (
-              dfurProjects.slice(0, 5).map((project) => (
-                <div
-                  key={project.id}
-                  className="p-4 bg-gradient-to-br from-slate-50 to-white rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h4
-                        className="font-bold text-slate-900 mb-1 line-clamp-1"
-                        title={project.project}
-                      >
-                        {project.project}
-                      </h4>
-                      <p className="text-xs text-slate-500 flex items-center gap-1">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500" />
-                        {project.location}
-                      </p>
-                    </div>
-                    <Badge className={`shrink-0 ${statusColor(project.review_status)}`}>
-                      {statusLabel(project.review_status)}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-blue-600">
-                      {formatCurrencyCompact(safeParseAmount(project.total_cost_approved))}
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      {formatDate(project.transaction_date)}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-12 text-slate-500">No projects available</div>
-            )}
-          </div>
-        </div> */}
       </div>
 
-      {/* All Projects Table */}
+      {/* All Projects — card list on mobile, table on md+ */}
       <div className="glass-card rounded-3xl overflow-hidden shadow-xl">
-        <div className="bg-gradient-to-r from-violet-500 to-violet-600 p-6">
+        <div className="bg-gradient-to-r from-violet-500 to-violet-600 p-4 sm:p-6">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-              <FileText className="w-6 h-6 text-white" />
+            <div className="p-2 sm:p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white">All Projects</h3>
-              <p className="text-violet-100 text-sm">Complete project listing</p>
+              <h3 className="text-lg sm:text-xl font-bold text-white">All Projects</h3>
+              <p className="text-violet-100 text-xs sm:text-sm">Complete project listing</p>
             </div>
           </div>
         </div>
-        <div className="overflow-x-auto custom-scrollbar">
+
+        {/* ── Mobile card list (hidden on md+) ── */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {isLoadingDfurProjects ? (
+            <div className="py-16 flex flex-col items-center gap-3 text-slate-500">
+              <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+              <span className="text-sm">Loading projects...</span>
+            </div>
+          ) : dfurProjects && dfurProjects.length > 0 ? (
+            dfurProjects.map((project) => {
+              const approved = safeParseAmount(project.total_cost_approved);
+              const incurred = safeParseAmount(project.total_cost_incurred);
+              const pct = approved > 0 ? (incurred / approved) * 100 : 0;
+              const pctDisplay = pct.toFixed(1);
+              const barWidth = Math.min(pct, 100);
+
+              return (
+                <div key={project.id} className="p-4 hover:bg-violet-50/30 transition-colors">
+                  {/* Project name + status badge on same row */}
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="font-semibold text-slate-900 text-sm leading-tight flex-1">
+                      {project.project}
+                    </p>
+                    <Badge className={`${statusColor(project.status)} shrink-0 text-xs`}>
+                      {statusLabel(project.status)}
+                    </Badge>
+                  </div>
+
+                  {/* Location */}
+                  <p className="text-xs text-slate-500 mb-3 truncate">{project.location}</p>
+
+                  {/* Costs row */}
+                  <div className="flex items-center justify-between text-xs mb-3">
+                    <div>
+                      <span className="text-slate-500 uppercase tracking-wide font-semibold">Approved</span>
+                      <p className="font-bold text-slate-900 text-sm">{formatCurrency(approved)}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-slate-500 uppercase tracking-wide font-semibold">Incurred</span>
+                      <p className="font-bold text-amber-600 text-sm">{formatCurrency(incurred)}</p>
+                    </div>
+                  </div>
+
+                  {/* Utilization bar + % in one row */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${utilizationBarColor(pct)}`}
+                        style={{ width: `${barWidth}%` }}
+                      />
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold min-w-[52px] justify-center shrink-0 ${utilizationBadgeColor(pct)}`}>
+                      {pctDisplay}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="py-16 text-center text-slate-500 text-sm">
+              No projects data available
+            </div>
+          )}
+        </div>
+
+        {/* ── Desktop table (hidden below md) ── */}
+        <div className="hidden md:block overflow-x-auto custom-scrollbar">
           <table className="w-full text-sm">
             <thead className="bg-slate-50/80 backdrop-blur-sm border-b-2 border-slate-200">
               <tr className="text-xs uppercase text-slate-600">
@@ -251,7 +278,7 @@ export default function DevelopmentProjects({
                 <th className="text-left py-4 px-6 font-bold">Location</th>
                 <th className="text-right py-4 px-6 font-bold">Approved</th>
                 <th className="text-right py-4 px-6 font-bold">Incurred</th>
-                <th className="text-center py-4 px-6 font-bold">Status</th>
+                <th className="text-center py-4 px-6 font-bold">Status / Utilization</th>
               </tr>
             </thead>
             <tbody>
@@ -265,36 +292,50 @@ export default function DevelopmentProjects({
                   </td>
                 </tr>
               ) : dfurProjects && dfurProjects.length > 0 ? (
-                dfurProjects.map((project) => (
-                  <tr
-                    key={project.id}
-                    className="border-b border-slate-100 hover:bg-violet-50/30 transition-all duration-200"
-                  >
-                    <td
-                      className="py-4 px-6 font-semibold text-slate-900 max-w-xs truncate"
-                      title={project.project}
+                dfurProjects.map((project) => {
+                  const approved = safeParseAmount(project.total_cost_approved);
+                  const incurred = safeParseAmount(project.total_cost_incurred);
+                  const pct = approved > 0 ? (incurred / approved) * 100 : 0;
+                  const pctDisplay = pct.toFixed(1);
+                  const barWidth = Math.min(pct, 100);
+
+                  return (
+                    <tr
+                      key={project.id}
+                      className="border-b border-slate-100 hover:bg-violet-50/30 transition-all duration-200"
                     >
-                      {project.project}
-                    </td>
-                    <td
-                      className="py-4 px-6 text-slate-600 max-w-xs truncate"
-                      title={project.location}
-                    >
-                      {project.location}
-                    </td>
-                    <td className="text-right py-4 px-6 font-bold text-slate-900">
-                      {formatCurrency(safeParseAmount(project.total_cost_approved))}
-                    </td>
-                    <td className="text-right py-4 px-6 font-bold text-amber-600">
-                      {formatCurrency(safeParseAmount(project.total_cost_incurred))}
-                    </td>
-                    <td className="text-center py-4 px-6">
-                      <Badge className={statusColor(project.status)}>
-                        {statusLabel(project.status)}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))
+                      <td className="py-4 px-6 font-semibold text-slate-900 max-w-xs truncate" title={project.project}>
+                        {project.project}
+                      </td>
+                      <td className="py-4 px-6 text-slate-600 max-w-xs truncate" title={project.location}>
+                        {project.location}
+                      </td>
+                      <td className="text-right py-4 px-6 font-bold text-slate-900">
+                        {formatCurrency(approved)}
+                      </td>
+                      <td className="text-right py-4 px-6 font-bold text-amber-600">
+                        {formatCurrency(incurred)}
+                      </td>
+                      {/* Status badge + bar + % all in one row */}
+                      <td className="py-4 px-6">
+                        <div className="flex items-center justify-end gap-2">
+                          <Badge className={`${statusColor(project.status)} shrink-0`}>
+                            {statusLabel(project.status)}
+                          </Badge>
+                          <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden shrink-0">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${utilizationBarColor(pct)}`}
+                              style={{ width: `${barWidth}%` }}
+                            />
+                          </div>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold w-[58px] justify-center shrink-0 ${utilizationBadgeColor(pct)}`}>
+                            {pctDisplay}%
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={5} className="py-16 text-center text-slate-500">
