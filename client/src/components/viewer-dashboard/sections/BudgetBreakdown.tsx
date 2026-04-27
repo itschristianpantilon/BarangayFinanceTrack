@@ -24,7 +24,6 @@ export default function BudgetBreakdown({
   currentYear,
 }: BudgetBreakdownProps) {
 
-  console.log("ABO DATA", aboBreakdownData)
 
   return (
     <section>
