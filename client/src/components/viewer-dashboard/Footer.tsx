@@ -26,20 +26,7 @@ export default function Footer({ currentYear }: FooterProps) {
               Building trust through complete financial transparency and accountability.
               Empowering our community with real-time access to public finances.
             </p>
-            <div className="flex gap-2 sm:gap-3">
-              {[
-                { Icon: Activity, color: "text-blue-400" },
-                { Icon: Shield, color: "text-violet-400" },
-                { Icon: FileText, color: "text-emerald-400" },
-              ].map(({ Icon, color }, i) => (
-                <div
-                  key={i}
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition"
-                >
-                  <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${color}`} />
-                </div>
-              ))}
-            </div>
+
           </div>
 
           <div>
