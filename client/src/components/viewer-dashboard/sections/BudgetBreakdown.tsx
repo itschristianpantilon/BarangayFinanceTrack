@@ -70,9 +70,9 @@ export default function BudgetBreakdown({
                 <tr className="text-xs uppercase text-slate-600">
                   <th className="text-left py-5 px-6 font-bold">Expenditure Programme</th>
                   {/* <th className="text-left py-5 px-4 font-bold">Fund Source</th> */}
-                  <th className="text-right py-5 px-6 font-bold">ABO (Planned)</th>
-                  <th className="text-right py-5 px-6 font-bold">SRE (Actual)</th>
-                  <th className="text-right py-5 px-6 font-bold">Variance</th>
+                  <th className="text-right py-5 px-6 font-medium">ABO (Planned/<p className="font-bold">Planadong Budget)</p></th>
+                  <th className="text-right py-5 px-6 font-medium">SRE (Actual/<p className="font-bold">Aktwal na Gastos)</p></th>
+                  <th className="text-right py-5 px-6 font-medium">Variance <p className="font-bold">(Agwat)</p></th>
                   <th className="text-right py-5 px-6 font-bold">Utilized %</th>
                 </tr>
               </thead>

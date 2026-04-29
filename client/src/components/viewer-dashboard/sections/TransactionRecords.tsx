@@ -255,8 +255,8 @@ export default function TransactionRecords({
                   <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-white truncate">
-                    Collections
+                  <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white truncate">
+                    Collections <span className="font-extrabold">(Koleksyon ng Pondo)</span>
                   </h3>
                   <p className="text-emerald-100 text-xs sm:text-sm truncate">
                     Recent income transactions
@@ -337,8 +337,8 @@ export default function TransactionRecords({
                   <TrendingDown className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-white truncate">
-                    Disbursements
+                  <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white truncate">
+                    Disbursements <span className="font-extrabold">(Paglalabas ng Pondo)</span>
                   </h3>
                   <p className="text-amber-100 text-xs sm:text-sm truncate">
                     Recent expense transactions

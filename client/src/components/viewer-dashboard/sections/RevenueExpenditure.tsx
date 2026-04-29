@@ -119,7 +119,7 @@ export default function RevenueExpenditure() {
         <div className="glass-card rounded-3xl p-8 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-1">Revenue Sources</h3>
+              <h3 className="text-xl font-semibold text-slate-900 mb-1">Revenue Sources <span className="font-extrabold">(Mga Kita)</span> </h3>
               <p className="text-sm text-slate-600">Distribution of income</p>
             </div>
             <PieChartIcon className="w-6 h-6 text-blue-600" />
@@ -189,8 +189,8 @@ export default function RevenueExpenditure() {
         <div className="glass-card rounded-3xl p-8 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-1">
-                Expenditure Categories
+              <h3 className="text-xl font-semibold text-slate-900 mb-1">
+                Expenditure Categories <span className="font-extrabold">(Mga Gastos)</span>
               </h3>
               <p className="text-sm text-slate-600">Distribution of spending</p>
             </div>
