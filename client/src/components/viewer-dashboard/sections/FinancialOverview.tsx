@@ -105,14 +105,14 @@ export default function FinancialOverview({
               )}
             </div>
             <Badge
-              className={`border-0 text-center ${
+              className={`border-0 text-center flex flex-col ${
                 surplus >= 0
                   ? "bg-emerald-100 text-emerald-700"
                   : "bg-red-100 text-red-700"
               }`}
             >
-              {surplus >= 0 ? "Surplus" : "Deficit"}{" "} <br />
-              {surplus >= 0 ? "(Sobra)" : "(Kulangan)"}
+              <p className="font-semibold">{surplus >= 0 ? "Surplus" : "Deficit"}{" "}</p>
+              <p className="font-extrabold">{surplus >= 0 ? "(Sobra)" : "(Kulangan)"}</p>
             </Badge>
           </div>
           <div
