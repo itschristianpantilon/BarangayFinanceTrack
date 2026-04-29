@@ -326,7 +326,7 @@ export function CollectionForm({ collection, trigger }: CollectionFormProps) {
                   <FormControl>
                     <Input
                       {...field}
-                      
+                      readOnly
                       className="bg-muted"
                       placeholder="Generating..."
                       data-testid="input-transaction-id"
